@@ -1,0 +1,31 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+// Find and load the autoloader
+$possibleAutoloaderPaths = [
+    __DIR__ . '/../vendor/autoload.php',
+    __DIR__ . '/../../../autoload.php',
+];
+
+$autoloaderPath = null;
+foreach ($possibleAutoloaderPaths as $path) {
+    if (file_exists($path)) {
+        $autoloaderPath = $path;
+        break;
+    }
+}
+
+if ($autoloaderPath === null) {
+    fwrite(STDERR, 'Autoloader not found. Please run "composer install".' . PHP_EOL);
+    exit(1);
+}
+
+require $autoloaderPath;
+
+use PhpSwarm\Console\Application;
+
+// Create and run the application
+$application = new Application();
+$application->run(); 
