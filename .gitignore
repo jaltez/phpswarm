@@ -1,0 +1,48 @@
+# Composer
+/vendor/
+composer.phar
+composer.lock
+
+# PHPUnit
+/phpunit.xml
+/.phpunit.result.cache
+/coverage/
+
+# IDE files
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Environment files
+.env
+.env.*
+!.env.example
+.phpswarm.env
+
+# Configuration
+/config/phpswarm.php
+
+# Build artifacts
+/build/
+/dist/
+
+# Logs
+/logs/
+*.log
+
+# Cache
+/cache/
+*.cache 
+
+# Reference Context
+.ref_context/

@@ -1,0 +1,95 @@
+<?php
+
+/**
+ * PHPSwarm Configuration
+ * 
+ * This is a default configuration file for PHPSwarm.
+ * Copy this file to 'phpswarm.php' to use it.
+ */
+
+return [
+    // LLM (Large Language Model) configuration
+    'llm' => [
+        // The default LLM provider to use (openai, anthropic, etc.)
+        'provider' => 'openai',
+        
+        // Default model to use
+        'model' => 'gpt-4',
+        
+        // Default options for LLMs
+        'temperature' => 0.7,
+        'max_tokens' => 2048,
+        'top_p' => 1.0,
+        'frequency_penalty' => 0.0,
+        'presence_penalty' => 0.0,
+        
+        // Provider-specific configurations
+        'openai' => [
+            // API key (it's recommended to use environment variables instead)
+            'api_key' => '', // or use the OPENAI_API_KEY env var
+            'base_url' => 'https://api.openai.com/v1',
+        ],
+        
+        'anthropic' => [
+            // API key (it's recommended to use environment variables instead)
+            'api_key' => '', // or use the ANTHROPIC_API_KEY env var
+            'base_url' => 'https://api.anthropic.com',
+        ],
+    ],
+    
+    // Memory configuration
+    'memory' => [
+        // The default memory provider to use (array, redis, etc.)
+        'provider' => 'array',
+        
+        // Time-to-live for memory entries in seconds (0 = no expiration)
+        'ttl' => 3600,
+        
+        // Redis configuration (if using Redis provider)
+        'redis' => [
+            'host' => 'localhost',
+            'port' => 6379,
+            'database' => 0,
+            'prefix' => 'phpswarm:',
+        ],
+    ],
+    
+    // Agent configuration
+    'agent' => [
+        // Whether to enable verbose logging for agents
+        'verbose' => false,
+        
+        // Maximum number of iterations for an agent to run
+        'max_iterations' => 10,
+        
+        // Whether to allow agents to delegate tasks to other agents
+        'delegation' => false,
+    ],
+    
+    // Tool configuration
+    'tool' => [
+        // Web search tool configuration
+        'web_search' => [
+            // API key (it's recommended to use environment variables instead)
+            'api_key' => '', // or use the SEARCH_API_KEY env var
+            'engine_id' => '', // or use the SEARCH_ENGINE_ID env var
+            'service' => 'google',
+        ],
+        
+        // Weather tool configuration
+        'weather' => [
+            // API key (it's recommended to use environment variables instead)
+            'api_key' => '', // or use the WEATHER_API_KEY env var
+            'service' => 'openweathermap',
+        ],
+    ],
+    
+    // Logging configuration
+    'log' => [
+        // Log level (debug, info, notice, warning, error, critical, alert, emergency)
+        'level' => 'error',
+        
+        // Path to store log files
+        'path' => 'logs',
+    ],
+]; 
