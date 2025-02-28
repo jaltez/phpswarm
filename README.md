@@ -130,11 +130,17 @@ $result = $workflow->execute([
 
 ## 📊 Project Status
 
-PHPSwarm is in active development with regular feature additions.
+PHPSwarm is in active development with regular feature additions. See the [PROGRESS.md](PROGRESS.md) file for the current implementation status and future development plans.
 
 ## 📚 Documentation
 
-See the [examples](examples/) directory for more detailed usage examples.
+The following documentation resources are available:
+
+- [API Documentation](docs/api.md): Complete API reference
+- [Tools Documentation](docs/tools.md): Details on built-in tools and how to create custom tools
+- [Examples](examples/): More detailed usage examples of the framework
+
+For more comprehensive documentation, see the [docs](docs/) directory.
 
 ## 🤝 Contributing
 
