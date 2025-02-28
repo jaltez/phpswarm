@@ -19,27 +19,27 @@ class AnthropicConnector implements LLMInterface
      * @var string API key for authentication
      */
     private string $apiKey;
-    
+
     /**
      * @var string Default model to use
      */
     private string $defaultModel;
-    
+
     /**
      * @var string Base URL for API requests
      */
     private string $baseUrl;
-    
+
     /**
      * @var Client HTTP client for making requests
      */
     private Client $client;
-    
+
     /**
      * @var array<string, mixed> Default options for API requests
      */
     private array $defaultOptions;
-    
+
     /**
      * @var array<string, int> Model token limits
      */
@@ -51,7 +51,7 @@ class AnthropicConnector implements LLMInterface
         'claude-2.0' => 100000,
         'claude-instant-1.2' => 100000,
     ];
-    
+
     /**
      * Create a new AnthropicConnector instance.
      *
@@ -60,14 +60,14 @@ class AnthropicConnector implements LLMInterface
     public function __construct(array $config = [])
     {
         $this->apiKey = $config['api_key'] ?? getenv('ANTHROPIC_API_KEY');
-        
+
         if (empty($this->apiKey)) {
             throw new LLMException('Anthropic API key is required');
         }
-        
+
         $this->defaultModel = $config['model'] ?? getenv('ANTHROPIC_MODEL') ?: 'claude-3-sonnet-20240229';
         $this->baseUrl = $config['base_url'] ?? 'https://api.anthropic.com';
-        
+
         $this->client = new Client([
             'base_uri' => $this->baseUrl,
             'headers' => [
@@ -76,24 +76,24 @@ class AnthropicConnector implements LLMInterface
                 'Content-Type' => 'application/json',
             ],
         ]);
-        
+
         $this->defaultOptions = [
             'temperature' => $config['temperature'] ?? 0.7,
             'max_tokens' => $config['max_tokens'] ?? 4096,
             'top_p' => $config['top_p'] ?? 1.0,
         ];
     }
-    
+
     /**
      * {@inheritdoc}
      */
     public function chat(array $messages, array $options = []): LLMResponseInterface
     {
         $options = $this->prepareOptions($options);
-        
+
         // Convert messages to Anthropic format (system, user, assistant)
         $formattedMessages = $this->formatMessages($messages);
-        
+
         $payload = [
             'model' => $options['model'],
             'messages' => $formattedMessages,
@@ -101,20 +101,20 @@ class AnthropicConnector implements LLMInterface
             'temperature' => $options['temperature'],
             'top_p' => $options['top_p'],
         ];
-        
+
         // Add tool specification if provided
         if (isset($options['tools']) && !empty($options['tools'])) {
             $payload['tools'] = $options['tools'];
             $payload['tool_choice'] = $options['tool_choice'] ?? 'auto';
         }
-        
+
         try {
             $response = $this->client->post('/v1/messages', [
                 'json' => $payload,
             ]);
-            
+
             $responseData = json_decode($response->getBody()->getContents(), true);
-            
+
             return new AnthropicResponse($responseData);
         } catch (GuzzleException $e) {
             throw new LLMException(
@@ -124,7 +124,7 @@ class AnthropicConnector implements LLMInterface
             );
         }
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -137,20 +137,20 @@ class AnthropicConnector implements LLMInterface
                 'content' => $prompt,
             ],
         ];
-        
+
         return $this->chat($messages, $options);
     }
-    
+
     /**
      * {@inheritdoc}
      */
     public function stream(array $messages, callable $callback, array $options = []): void
     {
         $options = $this->prepareOptions($options);
-        
+
         // Convert messages to Anthropic format
         $formattedMessages = $this->formatMessages($messages);
-        
+
         $payload = [
             'model' => $options['model'],
             'messages' => $formattedMessages,
@@ -159,39 +159,39 @@ class AnthropicConnector implements LLMInterface
             'top_p' => $options['top_p'],
             'stream' => true,
         ];
-        
+
         // Add tool specification if provided
         if (isset($options['tools']) && !empty($options['tools'])) {
             $payload['tools'] = $options['tools'];
             $payload['tool_choice'] = $options['tool_choice'] ?? 'auto';
         }
-        
+
         try {
             $response = $this->client->post('/v1/messages', [
                 'json' => $payload,
                 'stream' => true,
                 'decode_content' => true,
             ]);
-            
+
             $body = $response->getBody();
-            
+
             // Process each line as it comes in
             while (!$body->eof()) {
                 $line = $body->readline();
-                
+
                 // Skip empty lines or lines not starting with "data:"
                 if (empty($line) || strpos($line, 'data:') !== 0) {
                     continue;
                 }
-                
+
                 // Remove "data: " prefix and parse JSON
                 $data = substr($line, 6);
-                
+
                 // Handle [DONE] marker
                 if (trim($data) === '[DONE]') {
                     break;
                 }
-                
+
                 $chunk = json_decode($data, true);
                 if (json_last_error() === JSON_ERROR_NONE) {
                     $callback($chunk);
@@ -205,7 +205,7 @@ class AnthropicConnector implements LLMInterface
             );
         }
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -216,11 +216,11 @@ class AnthropicConnector implements LLMInterface
         if (is_array($input)) {
             $input = json_encode($input);
         }
-        
+
         // Very simple estimation: 1 token ≈ 4 characters
         return (int) ceil(mb_strlen($input) / 4);
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -228,7 +228,7 @@ class AnthropicConnector implements LLMInterface
     {
         return $this->defaultModel;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -236,7 +236,7 @@ class AnthropicConnector implements LLMInterface
     {
         return 'Anthropic';
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -244,7 +244,7 @@ class AnthropicConnector implements LLMInterface
     {
         return true;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -252,7 +252,7 @@ class AnthropicConnector implements LLMInterface
     {
         return true;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -260,7 +260,7 @@ class AnthropicConnector implements LLMInterface
     {
         return self::MODEL_TOKEN_LIMITS[$this->defaultModel] ?? 100000;
     }
-    
+
     /**
      * Format messages from standard format to Anthropic format.
      *
@@ -270,34 +270,34 @@ class AnthropicConnector implements LLMInterface
     private function formatMessages(array $messages): array
     {
         $formattedMessages = [];
-        
+
         foreach ($messages as $message) {
             $role = $message['role'];
             $content = $message['content'];
-            
+
             // Handle system message - it's handled differently in Anthropic
             if ($role === 'system') {
                 // Add system message as a special field in the request
                 // We'll handle this outside this function
                 continue;
             }
-            
+
             // Map roles to Anthropic roles
             $anthropicRole = match ($role) {
                 'user' => 'user',
                 'assistant' => 'assistant',
                 default => 'user', // Default to user for unknown roles
             };
-            
+
             $formattedMessage = [
                 'role' => $anthropicRole,
             ];
-            
+
             // Handle content
             if (is_array($content)) {
                 // Multi-modal content (text and images)
                 $formattedContent = [];
-                
+
                 foreach ($content as $item) {
                     if (isset($item['type']) && $item['type'] === 'image') {
                         $formattedContent[] = [
@@ -315,19 +315,19 @@ class AnthropicConnector implements LLMInterface
                         ];
                     }
                 }
-                
+
                 $formattedMessage['content'] = $formattedContent;
             } else {
                 // Plain text content
                 $formattedMessage['content'] = $content;
             }
-            
+
             $formattedMessages[] = $formattedMessage;
         }
-        
+
         return $formattedMessages;
     }
-    
+
     /**
      * Prepare options by merging with defaults.
      *
@@ -340,4 +340,4 @@ class AnthropicConnector implements LLMInterface
             'model' => $options['model'] ?? $this->defaultModel,
         ], $options);
     }
-} 
+}

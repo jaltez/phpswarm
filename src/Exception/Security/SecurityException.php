@@ -24,10 +24,10 @@ class SecurityException extends PhpSwarmException
         if ($reason !== null) {
             $message .= ': ' . $reason;
         }
-        
+
         return new self($message);
     }
-    
+
     /**
      * Create a new security exception for unsafe path access.
      *
@@ -42,10 +42,10 @@ class SecurityException extends PhpSwarmException
         if ($reason !== null) {
             $message .= ': ' . $reason;
         }
-        
+
         return new self($message);
     }
-    
+
     /**
      * Create a new security exception for prompt injection detection.
      *
@@ -59,10 +59,10 @@ class SecurityException extends PhpSwarmException
         if ($pattern !== null) {
             $message .= sprintf(' (pattern: %s)', $pattern);
         }
-        
+
         return new self($message);
     }
-    
+
     /**
      * Create a new security exception for unsafe command execution attempt.
      *
@@ -76,10 +76,10 @@ class SecurityException extends PhpSwarmException
         if ($reason !== null) {
             $message .= ': ' . $reason;
         }
-        
+
         return new self($message);
     }
-    
+
     /**
      * Create a new security exception for authentication failure.
      *
@@ -93,10 +93,10 @@ class SecurityException extends PhpSwarmException
         if ($reason !== null) {
             $message .= ': ' . $reason;
         }
-        
+
         return new self($message);
     }
-    
+
     /**
      * Create a new security exception for authorization failure.
      *
@@ -110,7 +110,7 @@ class SecurityException extends PhpSwarmException
         if ($reason !== null) {
             $message .= ': ' . $reason;
         }
-        
+
         return new self($message);
     }
-} 
+}

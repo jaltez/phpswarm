@@ -16,37 +16,37 @@ class FunctionStep implements WorkflowStepInterface
      * @var string The name of the step
      */
     private string $name;
-    
+
     /**
      * @var string The description of the step
      */
     private string $description;
-    
+
     /**
      * @var callable The function to execute
      */
     private $function;
-    
+
     /**
      * @var int|null The timeout in seconds
      */
     private ?int $timeout = null;
-    
+
     /**
      * @var bool Whether this step is required
      */
     private bool $required = true;
-    
+
     /**
      * @var array<string, string> Input mapping
      */
     private array $inputMapping = [];
-    
+
     /**
      * @var array<string, string> Output mapping
      */
     private array $outputMapping = [];
-    
+
     /**
      * Create a new FunctionStep instance.
      *
@@ -63,26 +63,26 @@ class FunctionStep implements WorkflowStepInterface
         $this->function = $function;
         $this->description = $description;
     }
-    
+
     /**
      * {@inheritdoc}
      */
     public function execute(array $input, array $stepsOutput = []): array
     {
         $startTime = microtime(true);
-        
+
         try {
             // Execute the function
             $result = ($this->function)($input, $stepsOutput);
-            
+
             // Ensure the result is an array
             if (!is_array($result)) {
                 $result = ['result' => $result];
             }
-            
+
             // Add execution time
             $result['execution_time'] = microtime(true) - $startTime;
-            
+
             return $result;
         } catch (\Throwable $e) {
             return [
@@ -93,7 +93,7 @@ class FunctionStep implements WorkflowStepInterface
             ];
         }
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -101,7 +101,7 @@ class FunctionStep implements WorkflowStepInterface
     {
         return $this->name;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -110,7 +110,7 @@ class FunctionStep implements WorkflowStepInterface
         $this->name = $name;
         return $this;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -118,7 +118,7 @@ class FunctionStep implements WorkflowStepInterface
     {
         return $this->description;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -127,7 +127,7 @@ class FunctionStep implements WorkflowStepInterface
         $this->description = $description;
         return $this;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -135,7 +135,7 @@ class FunctionStep implements WorkflowStepInterface
     {
         return null; // Function steps don't use agents
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -144,7 +144,7 @@ class FunctionStep implements WorkflowStepInterface
         // Silently ignore as function steps don't use agents
         return $this;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -152,7 +152,7 @@ class FunctionStep implements WorkflowStepInterface
     {
         return $this->timeout;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -161,7 +161,7 @@ class FunctionStep implements WorkflowStepInterface
         $this->timeout = $timeout;
         return $this;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -169,7 +169,7 @@ class FunctionStep implements WorkflowStepInterface
     {
         return $this->required;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -178,7 +178,7 @@ class FunctionStep implements WorkflowStepInterface
         $this->required = $required;
         return $this;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -186,7 +186,7 @@ class FunctionStep implements WorkflowStepInterface
     {
         return $this->inputMapping;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -195,7 +195,7 @@ class FunctionStep implements WorkflowStepInterface
         $this->inputMapping = $mapping;
         return $this;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -203,7 +203,7 @@ class FunctionStep implements WorkflowStepInterface
     {
         return $this->outputMapping;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -212,7 +212,7 @@ class FunctionStep implements WorkflowStepInterface
         $this->outputMapping = $mapping;
         return $this;
     }
-    
+
     /**
      * Get the function to execute.
      *
@@ -222,7 +222,7 @@ class FunctionStep implements WorkflowStepInterface
     {
         return $this->function;
     }
-    
+
     /**
      * Set the function to execute.
      *
@@ -234,4 +234,4 @@ class FunctionStep implements WorkflowStepInterface
         $this->function = $function;
         return $this;
     }
-} 
+}

@@ -37,42 +37,42 @@ class MakeLLMConnectorCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-        
+
         $name = $input->getArgument('name');
         $directory = $input->getOption('directory');
         $supportsStreaming = $input->getOption('streaming');
         $supportsFunctionCalling = $input->getOption('function-calling');
         $defaultModel = $input->getOption('default-model');
-        
+
         // Ensure the name has the correct format
         $providerName = $this->formatProviderName($name);
         $connectorClassName = $providerName . 'Connector';
         $responseClassName = $providerName . 'Response';
-        
+
         // Create the provider directory if it doesn't exist
         $providerDirectory = $directory . '/' . $providerName;
         if (!is_dir($providerDirectory)) {
             mkdir($providerDirectory, 0755, true);
         }
-        
+
         // Generate the namespace based on the directory
         $namespace = $this->generateNamespace($providerDirectory);
-        
+
         // Generate file paths
         $connectorFilePath = $providerDirectory . '/' . $connectorClassName . '.php';
         $responseFilePath = $providerDirectory . '/' . $responseClassName . '.php';
-        
+
         // Check if the files already exist
         if (file_exists($connectorFilePath)) {
             $io->error(sprintf('LLM connector "%s" already exists at "%s"', $connectorClassName, $connectorFilePath));
             return Command::FAILURE;
         }
-        
+
         if (file_exists($responseFilePath)) {
             $io->error(sprintf('LLM response "%s" already exists at "%s"', $responseClassName, $responseFilePath));
             return Command::FAILURE;
         }
-        
+
         // Generate the connector class content
         $connectorContent = $this->generateConnectorClass(
             $namespace,
@@ -83,7 +83,7 @@ class MakeLLMConnectorCommand extends Command
             $supportsStreaming,
             $supportsFunctionCalling
         );
-        
+
         // Generate the response class content
         $responseContent = $this->generateResponseClass(
             $namespace,
@@ -91,19 +91,19 @@ class MakeLLMConnectorCommand extends Command
             $providerName,
             $supportsFunctionCalling
         );
-        
+
         // Write the content to the files
         file_put_contents($connectorFilePath, $connectorContent);
         file_put_contents($responseFilePath, $responseContent);
-        
+
         $io->success([
             sprintf('LLM connector "%s" created successfully at "%s"', $connectorClassName, $connectorFilePath),
             sprintf('LLM response "%s" created successfully at "%s"', $responseClassName, $responseFilePath)
         ]);
-        
+
         return Command::SUCCESS;
     }
-    
+
     /**
      * Format the provider name to ensure it follows PHP conventions
      */
@@ -112,7 +112,7 @@ class MakeLLMConnectorCommand extends Command
         // Convert to PascalCase
         return str_replace(' ', '', ucwords(str_replace(['_', '-'], ' ', $name)));
     }
-    
+
     /**
      * Generate the namespace based on the directory
      */
@@ -120,14 +120,14 @@ class MakeLLMConnectorCommand extends Command
     {
         // Convert directory path to namespace
         $namespace = str_replace('/', '\\', $directory);
-        
+
         // Remove src/ or src\ prefix
         $namespace = preg_replace('/^src[\/\\\\]/', '', $namespace);
-        
+
         // Add PhpSwarm prefix
         return 'PhpSwarm\\' . $namespace;
     }
-    
+
     /**
      * Generate the connector class content
      */
@@ -143,7 +143,7 @@ class MakeLLMConnectorCommand extends Command
         $streamingCode = $supportsStreaming ? $this->generateStreamingMethod($responseClassName) : $this->generateNonStreamingMethod();
         $functionCallingCode = $supportsFunctionCalling ? 'true' : 'false';
         $streamingSupportCode = $supportsStreaming ? 'true' : 'false';
-        
+
         return <<<PHP
 <?php
 
@@ -377,7 +377,7 @@ class {$className} implements LLMInterface
 }
 PHP;
     }
-    
+
     /**
      * Generate the streaming method implementation
      */
@@ -466,7 +466,7 @@ PHP;
     }
 PHP;
     }
-    
+
     /**
      * Generate a non-streaming method implementation
      */
@@ -488,7 +488,7 @@ PHP;
     }
 PHP;
     }
-    
+
     /**
      * Generate the response class content
      */
@@ -499,7 +499,7 @@ PHP;
         bool $supportsFunctionCalling
     ): string {
         $toolCallsCode = $supportsFunctionCalling ? $this->generateToolCallsCode() : $this->generateNoToolCallsCode();
-        
+
         return <<<PHP
 <?php
 
@@ -718,7 +718,7 @@ class {$className} implements LLMResponseInterface
 }
 PHP;
     }
-    
+
     /**
      * Generate code for parsing tool calls
      */
@@ -735,7 +735,7 @@ PHP;
         }
 PHP;
     }
-    
+
     /**
      * Generate code for no tool calls
      */
@@ -747,4 +747,4 @@ PHP;
         $this->hasToolCalls = false;
 PHP;
     }
-} 
+}

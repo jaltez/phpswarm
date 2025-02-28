@@ -15,42 +15,42 @@ class WorkflowResult implements WorkflowResultInterface
      * @var bool Whether the workflow was successful
      */
     private bool $success;
-    
+
     /**
      * @var array<string, mixed> The output from the workflow
      */
     private array $output;
-    
+
     /**
      * @var float The execution time in seconds
      */
     private float $executionTime;
-    
+
     /**
      * @var array<string, array<string, mixed>> The results of all steps
      */
     private array $stepResults;
-    
+
     /**
      * @var array<string, string> Any errors that occurred
      */
     private array $errors;
-    
+
     /**
      * @var array<string> The steps that were executed successfully
      */
     private array $completedSteps;
-    
+
     /**
      * @var array<string> The steps that were skipped
      */
     private array $skippedSteps;
-    
+
     /**
      * @var array<int, array<string, mixed>> The execution log
      */
     private array $executionLog;
-    
+
     /**
      * Create a new WorkflowResult instance.
      *
@@ -82,7 +82,7 @@ class WorkflowResult implements WorkflowResultInterface
         $this->skippedSteps = $skippedSteps;
         $this->executionLog = $executionLog;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -90,7 +90,7 @@ class WorkflowResult implements WorkflowResultInterface
     {
         return $this->success;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -98,7 +98,7 @@ class WorkflowResult implements WorkflowResultInterface
     {
         return $this->output;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -106,7 +106,7 @@ class WorkflowResult implements WorkflowResultInterface
     {
         return $this->executionTime;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -114,7 +114,7 @@ class WorkflowResult implements WorkflowResultInterface
     {
         return $this->stepResults;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -122,7 +122,7 @@ class WorkflowResult implements WorkflowResultInterface
     {
         return $this->stepResults[$stepId] ?? null;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -130,7 +130,7 @@ class WorkflowResult implements WorkflowResultInterface
     {
         return $this->errors;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -138,7 +138,7 @@ class WorkflowResult implements WorkflowResultInterface
     {
         return in_array($stepId, $this->completedSteps, true) && !isset($this->errors[$stepId]);
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -146,7 +146,7 @@ class WorkflowResult implements WorkflowResultInterface
     {
         return $this->skippedSteps;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -154,7 +154,7 @@ class WorkflowResult implements WorkflowResultInterface
     {
         return $this->executionLog;
     }
-    
+
     /**
      * Get a summary of the workflow execution.
      *
@@ -171,7 +171,7 @@ class WorkflowResult implements WorkflowResultInterface
             'output_keys' => array_keys($this->output),
         ];
     }
-    
+
     /**
      * Get a specific output value.
      *
@@ -183,4 +183,4 @@ class WorkflowResult implements WorkflowResultInterface
     {
         return $this->output[$key] ?? $default;
     }
-} 
+}

@@ -6,7 +6,7 @@ namespace PhpSwarm\Contract\LLM;
 
 /**
  * Interface for all LLM (Large Language Model) connectors.
- * 
+ *
  * This interface provides a standard way to interact with different
  * LLM providers (OpenAI, Anthropic, etc.) in a consistent manner.
  */
@@ -20,7 +20,7 @@ interface LLMInterface
      * @return LLMResponseInterface The response from the LLM
      */
     public function chat(array $messages, array $options = []): LLMResponseInterface;
-    
+
     /**
      * Send a completion (non-chat) request to the LLM.
      *
@@ -29,7 +29,7 @@ interface LLMInterface
      * @return LLMResponseInterface The response from the LLM
      */
     public function complete(string $prompt, array $options = []): LLMResponseInterface;
-    
+
     /**
      * Stream a response from the LLM, processing chunks as they arrive.
      *
@@ -39,7 +39,7 @@ interface LLMInterface
      * @return void
      */
     public function stream(array $messages, callable $callback, array $options = []): void;
-    
+
     /**
      * Get the number of tokens in the given input.
      *
@@ -47,39 +47,39 @@ interface LLMInterface
      * @return int The number of tokens
      */
     public function getTokenCount(string|array $input): int;
-    
+
     /**
      * Get the default model name used by this connector.
      *
      * @return string
      */
     public function getDefaultModel(): string;
-    
+
     /**
      * Get the name of the provider (e.g., "OpenAI", "Anthropic").
      *
      * @return string
      */
     public function getProviderName(): string;
-    
+
     /**
      * Get whether this connector supports function calling.
      *
      * @return bool
      */
     public function supportsFunctionCalling(): bool;
-    
+
     /**
      * Get whether this connector supports streaming.
      *
      * @return bool
      */
     public function supportsStreaming(): bool;
-    
+
     /**
      * Get the maximum context length supported by the default model.
      *
      * @return int
      */
     public function getMaxContextLength(): int;
-} 
+}

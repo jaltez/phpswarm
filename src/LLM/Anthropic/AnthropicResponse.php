@@ -15,47 +15,47 @@ class AnthropicResponse implements LLMResponseInterface
      * @var array<string, mixed> The raw response data from Anthropic
      */
     private array $rawResponse;
-    
+
     /**
      * @var string The content/text of the response
      */
     private string $content;
-    
+
     /**
      * @var array<array<string, mixed>> Tool calls extracted from the response
      */
     private array $toolCalls = [];
-    
+
     /**
      * @var string The model used for the response
      */
     private string $model;
-    
+
     /**
      * @var int|null The number of prompt tokens used
      */
     private ?int $promptTokens = null;
-    
+
     /**
      * @var int|null The number of completion tokens used
      */
     private ?int $completionTokens = null;
-    
+
     /**
      * @var int|null The total number of tokens used
      */
     private ?int $totalTokens = null;
-    
+
     /**
      * @var string|null The finish reason
      */
     private ?string $finishReason = null;
-    
+
     /**
      * @var array<string, mixed> Additional metadata
      */
     private array $metadata = [];
-    
+
     /**
      * Create a new AnthropicResponse instance.
      *
@@ -66,7 +66,7 @@ class AnthropicResponse implements LLMResponseInterface
         $this->rawResponse = $rawResponse;
         $this->parseResponse();
     }
-    
+
     /**
      * Parse the raw response to extract relevant data.
      *
@@ -76,7 +76,7 @@ class AnthropicResponse implements LLMResponseInterface
     {
         // Extract the content
         $this->content = $this->rawResponse['content'][0]['text'] ?? '';
-        
+
         // Extract tool calls if available (Claude supports tool use)
         if (isset($this->rawResponse['content']) && is_array($this->rawResponse['content'])) {
             foreach ($this->rawResponse['content'] as $content) {
@@ -91,23 +91,23 @@ class AnthropicResponse implements LLMResponseInterface
                 }
             }
         }
-        
+
         // Extract model
         $this->model = $this->rawResponse['model'] ?? 'unknown';
-        
+
         // Extract token usage
         if (isset($this->rawResponse['usage']) && is_array($this->rawResponse['usage'])) {
             $this->promptTokens = $this->rawResponse['usage']['input_tokens'] ?? null;
             $this->completionTokens = $this->rawResponse['usage']['output_tokens'] ?? null;
-            $this->totalTokens = isset($this->promptTokens, $this->completionTokens) 
-                ? $this->promptTokens + $this->completionTokens 
+            $this->totalTokens = isset($this->promptTokens, $this->completionTokens)
+                ? $this->promptTokens + $this->completionTokens
                 : null;
         }
-        
+
         // Extract finish reason
         $this->finishReason = $this->rawResponse['stop_reason'] ?? null;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -115,7 +115,7 @@ class AnthropicResponse implements LLMResponseInterface
     {
         return $this->content;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -123,7 +123,7 @@ class AnthropicResponse implements LLMResponseInterface
     {
         return $this->rawResponse;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -131,7 +131,7 @@ class AnthropicResponse implements LLMResponseInterface
     {
         return $this->toolCalls;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -139,7 +139,7 @@ class AnthropicResponse implements LLMResponseInterface
     {
         return !empty($this->toolCalls);
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -147,7 +147,7 @@ class AnthropicResponse implements LLMResponseInterface
     {
         return $this->promptTokens;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -155,7 +155,7 @@ class AnthropicResponse implements LLMResponseInterface
     {
         return $this->completionTokens;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -163,7 +163,7 @@ class AnthropicResponse implements LLMResponseInterface
     {
         return $this->totalTokens;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -171,7 +171,7 @@ class AnthropicResponse implements LLMResponseInterface
     {
         return $this->model;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -179,7 +179,7 @@ class AnthropicResponse implements LLMResponseInterface
     {
         return $this->metadata;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -187,7 +187,7 @@ class AnthropicResponse implements LLMResponseInterface
     {
         return $this->finishReason;
     }
-    
+
     /**
      * Add metadata to the response.
      *
@@ -200,4 +200,4 @@ class AnthropicResponse implements LLMResponseInterface
         $this->metadata[$key] = $value;
         return $this;
     }
-} 
+}

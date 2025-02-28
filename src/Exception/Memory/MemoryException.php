@@ -12,4 +12,4 @@ use PhpSwarm\Exception\PhpSwarmException;
 class MemoryException extends PhpSwarmException
 {
     // Memory-specific exception
-} 
+}

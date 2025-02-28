@@ -9,7 +9,7 @@ use PhpSwarm\Tool\BaseTool;
 
 /**
  * Tool for interacting with the file system.
- * 
+ *
  * This tool allows agents to read, write, and manipulate files and directories.
  */
 class FileSystemTool extends BaseTool
@@ -18,12 +18,12 @@ class FileSystemTool extends BaseTool
      * @var string|null The base directory to restrict file operations
      */
     private ?string $baseDirectory;
-    
+
     /**
      * @var array<string> List of allowed operations
      */
     private array $allowedOperations;
-    
+
     /**
      * Create a new FileSystemTool instance.
      *
@@ -35,19 +35,19 @@ class FileSystemTool extends BaseTool
             'file_system',
             'Interact with the file system to read, write, and manage files and directories'
         );
-        
+
         // Set the base directory to restrict file operations (for security)
         $this->baseDirectory = $config['base_directory'] ?? null;
         if ($this->baseDirectory) {
             $this->baseDirectory = rtrim(realpath($this->baseDirectory) ?: $this->baseDirectory, '/\\');
         }
-        
+
         // Set allowed operations (default: all operations are allowed)
         $this->allowedOperations = $config['allowed_operations'] ?? [
             'read', 'write', 'append', 'delete', 'exists',
             'list_directory', 'create_directory', 'delete_directory'
         ];
-        
+
         // Define parameters schema
         $this->parametersSchema = [
             'operation' => [
@@ -73,29 +73,29 @@ class FileSystemTool extends BaseTool
                 'default' => false,
             ],
         ];
-        
+
         // Add tag
         $this->addTag('file-system');
     }
-    
+
     /**
      * {@inheritdoc}
      */
     public function run(array $parameters = []): mixed
     {
         $this->validateParameters($parameters);
-        
+
         $operation = $parameters['operation'];
         $path = $parameters['path'];
-        
+
         // Ensure the operation is allowed
         if (!in_array($operation, $this->allowedOperations, true)) {
             throw new ToolExecutionException("Operation '{$operation}' is not allowed");
         }
-        
+
         // Resolve full path and check if it's within base directory (if set)
         $fullPath = $this->resolvePath($path);
-        
+
         return match ($operation) {
             'read' => $this->readFile($fullPath),
             'write' => $this->writeFile($fullPath, $parameters['content'] ?? ''),
@@ -108,7 +108,7 @@ class FileSystemTool extends BaseTool
             default => throw new ToolExecutionException("Unsupported operation: {$operation}"),
         };
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -118,10 +118,10 @@ class FileSystemTool extends BaseTool
         if ($this->baseDirectory && !file_exists($this->baseDirectory)) {
             return false;
         }
-        
+
         return true;
     }
-    
+
     /**
      * Read a file and return its contents.
      *
@@ -134,23 +134,23 @@ class FileSystemTool extends BaseTool
         if (!file_exists($path)) {
             throw new ToolExecutionException("File not found: {$path}");
         }
-        
+
         if (!is_readable($path)) {
             throw new ToolExecutionException("File is not readable: {$path}");
         }
-        
+
         if (is_dir($path)) {
             throw new ToolExecutionException("Path is a directory, not a file: {$path}");
         }
-        
+
         $content = file_get_contents($path);
         if ($content === false) {
             throw new ToolExecutionException("Failed to read file: {$path}");
         }
-        
+
         return $content;
     }
-    
+
     /**
      * Write content to a file.
      *
@@ -162,24 +162,24 @@ class FileSystemTool extends BaseTool
     private function writeFile(string $path, string $content): bool
     {
         $directory = dirname($path);
-        
+
         if (!file_exists($directory)) {
             if (!mkdir($directory, 0755, true)) {
                 throw new ToolExecutionException("Failed to create directory: {$directory}");
             }
         }
-        
+
         if (file_exists($path) && !is_writable($path)) {
             throw new ToolExecutionException("File is not writable: {$path}");
         }
-        
+
         if (file_put_contents($path, $content) === false) {
             throw new ToolExecutionException("Failed to write to file: {$path}");
         }
-        
+
         return true;
     }
-    
+
     /**
      * Append content to a file.
      *
@@ -191,24 +191,24 @@ class FileSystemTool extends BaseTool
     private function appendToFile(string $path, string $content): bool
     {
         $directory = dirname($path);
-        
+
         if (!file_exists($directory)) {
             if (!mkdir($directory, 0755, true)) {
                 throw new ToolExecutionException("Failed to create directory: {$directory}");
             }
         }
-        
+
         if (file_exists($path) && !is_writable($path)) {
             throw new ToolExecutionException("File is not writable: {$path}");
         }
-        
+
         if (file_put_contents($path, $content, FILE_APPEND) === false) {
             throw new ToolExecutionException("Failed to append to file: {$path}");
         }
-        
+
         return true;
     }
-    
+
     /**
      * Delete a file.
      *
@@ -221,22 +221,22 @@ class FileSystemTool extends BaseTool
         if (!file_exists($path)) {
             throw new ToolExecutionException("File not found: {$path}");
         }
-        
+
         if (is_dir($path)) {
             throw new ToolExecutionException("Path is a directory, not a file: {$path}");
         }
-        
+
         if (!is_writable($path)) {
             throw new ToolExecutionException("File is not writable: {$path}");
         }
-        
+
         if (!unlink($path)) {
             throw new ToolExecutionException("Failed to delete file: {$path}");
         }
-        
+
         return true;
     }
-    
+
     /**
      * Check if a file or directory exists.
      *
@@ -247,7 +247,7 @@ class FileSystemTool extends BaseTool
     {
         return file_exists($path);
     }
-    
+
     /**
      * List the contents of a directory.
      *
@@ -261,31 +261,31 @@ class FileSystemTool extends BaseTool
         if (!file_exists($path)) {
             throw new ToolExecutionException("Directory not found: {$path}");
         }
-        
+
         if (!is_dir($path)) {
             throw new ToolExecutionException("Path is not a directory: {$path}");
         }
-        
+
         if (!is_readable($path)) {
             throw new ToolExecutionException("Directory is not readable: {$path}");
         }
-        
+
         if ($recursive) {
             return $this->listDirectoryRecursive($path);
         }
-        
+
         $items = [];
         $entries = scandir($path);
-        
+
         if ($entries === false) {
             throw new ToolExecutionException("Failed to list directory: {$path}");
         }
-        
+
         foreach ($entries as $entry) {
             if ($entry === '.' || $entry === '..') {
                 continue;
             }
-            
+
             $fullPath = rtrim($path, '/\\') . DIRECTORY_SEPARATOR . $entry;
             $items[$entry] = [
                 'type' => is_dir($fullPath) ? 'directory' : 'file',
@@ -293,10 +293,10 @@ class FileSystemTool extends BaseTool
                 'modified' => filemtime($fullPath),
             ];
         }
-        
+
         return $items;
     }
-    
+
     /**
      * List the contents of a directory recursively.
      *
@@ -308,12 +308,12 @@ class FileSystemTool extends BaseTool
         $items = [];
         $path = rtrim($path, '/\\');
         $basePath = strlen($path) + 1;
-        
+
         $iterator = new \RecursiveIteratorIterator(
             new \RecursiveDirectoryIterator($path, \RecursiveDirectoryIterator::SKIP_DOTS),
             \RecursiveIteratorIterator::SELF_FIRST
         );
-        
+
         foreach ($iterator as $file) {
             $relativePath = substr($file->getPathname(), $basePath);
             $items[$relativePath] = [
@@ -322,10 +322,10 @@ class FileSystemTool extends BaseTool
                 'modified' => $file->getMTime(),
             ];
         }
-        
+
         return $items;
     }
-    
+
     /**
      * Create a directory.
      *
@@ -342,14 +342,14 @@ class FileSystemTool extends BaseTool
             }
             throw new ToolExecutionException("Path exists but is not a directory: {$path}");
         }
-        
+
         if (!mkdir($path, 0755, $recursive)) {
             throw new ToolExecutionException("Failed to create directory: {$path}");
         }
-        
+
         return true;
     }
-    
+
     /**
      * Delete a directory.
      *
@@ -363,38 +363,38 @@ class FileSystemTool extends BaseTool
         if (!file_exists($path)) {
             throw new ToolExecutionException("Directory not found: {$path}");
         }
-        
+
         if (!is_dir($path)) {
             throw new ToolExecutionException("Path is not a directory: {$path}");
         }
-        
+
         if (!is_writable($path)) {
             throw new ToolExecutionException("Directory is not writable: {$path}");
         }
-        
+
         if ($recursive) {
             $this->deleteDirectoryRecursive($path);
             return true;
         }
-        
+
         $entries = scandir($path);
         if ($entries === false) {
             throw new ToolExecutionException("Failed to scan directory: {$path}");
         }
-        
+
         foreach ($entries as $entry) {
             if ($entry !== '.' && $entry !== '..') {
                 throw new ToolExecutionException("Directory is not empty: {$path}");
             }
         }
-        
+
         if (!rmdir($path)) {
             throw new ToolExecutionException("Failed to delete directory: {$path}");
         }
-        
+
         return true;
     }
-    
+
     /**
      * Delete a directory and its contents recursively.
      *
@@ -408,14 +408,14 @@ class FileSystemTool extends BaseTool
         if ($entries === false) {
             throw new ToolExecutionException("Failed to scan directory: {$path}");
         }
-        
+
         foreach ($entries as $entry) {
             if ($entry === '.' || $entry === '..') {
                 continue;
             }
-            
+
             $fullPath = rtrim($path, '/\\') . DIRECTORY_SEPARATOR . $entry;
-            
+
             if (is_dir($fullPath)) {
                 $this->deleteDirectoryRecursive($fullPath);
             } else {
@@ -424,12 +424,12 @@ class FileSystemTool extends BaseTool
                 }
             }
         }
-        
+
         if (!rmdir($path)) {
             throw new ToolExecutionException("Failed to delete directory: {$path}");
         }
     }
-    
+
     /**
      * Resolve and validate the file path to ensure it's within the base directory.
      *
@@ -443,38 +443,38 @@ class FileSystemTool extends BaseTool
         if (!$this->isAbsolutePath($path) && $this->baseDirectory) {
             $path = $this->baseDirectory . DIRECTORY_SEPARATOR . $path;
         }
-        
+
         // Resolve real path
         $realPath = realpath($path);
-        
+
         // If the path doesn't exist yet, check its parent directory instead
         if ($realPath === false) {
             $directory = dirname($path);
             $realDirectory = realpath($directory);
-            
+
             if ($realDirectory === false) {
                 throw new ToolExecutionException("Invalid path: {$path}");
             }
-            
+
             $filename = basename($path);
             $realPath = $realDirectory . DIRECTORY_SEPARATOR . $filename;
         }
-        
+
         // Check if the path is within the base directory (if set)
         if ($this->baseDirectory) {
             $realPath = str_replace('\\', '/', $realPath);
             $baseDir = str_replace('\\', '/', $this->baseDirectory);
-            
+
             if (strpos($realPath, $baseDir) !== 0) {
                 throw new ToolExecutionException(
                     "Access denied: Path is outside the allowed base directory"
                 );
             }
         }
-        
+
         return $realPath;
     }
-    
+
     /**
      * Check if a path is absolute.
      *
@@ -486,7 +486,7 @@ class FileSystemTool extends BaseTool
         if (PHP_OS_FAMILY === 'Windows') {
             return (bool) preg_match('/^[A-Z]:\\\\/i', $path) || strpos($path, '\\\\') === 0;
         }
-        
+
         return strpos($path, '/') === 0;
     }
-} 
+}

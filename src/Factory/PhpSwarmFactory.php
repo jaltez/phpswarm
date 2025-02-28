@@ -27,12 +27,12 @@ class PhpSwarmFactory
      * @var PhpSwarmConfig The configuration instance
      */
     private PhpSwarmConfig $config;
-    
+
     /**
      * @var array<string, object> Registry of created objects
      */
     private array $registry = [];
-    
+
     /**
      * Create a new PhpSwarmFactory instance.
      *
@@ -42,7 +42,7 @@ class PhpSwarmFactory
     {
         $this->config = $config ?? PhpSwarmConfig::getInstance();
     }
-    
+
     /**
      * Create an LLM connector based on the configured provider.
      *
@@ -53,14 +53,14 @@ class PhpSwarmFactory
     public function createLLM(array $options = []): LLMInterface
     {
         $provider = $options['provider'] ?? $this->config->get('llm.provider', 'openai');
-        
+
         return match ($provider) {
             'openai' => $this->createOpenAIConnector($options),
             'anthropic' => $this->createAnthropicConnector($options),
             default => throw new PhpSwarmException("Unsupported LLM provider: $provider"),
         };
     }
-    
+
     /**
      * Create an OpenAI LLM connector.
      *
@@ -79,10 +79,10 @@ class PhpSwarmFactory
             'frequency_penalty' => $options['frequency_penalty'] ?? $this->config->get('llm.frequency_penalty', 0.0),
             'presence_penalty' => $options['presence_penalty'] ?? $this->config->get('llm.presence_penalty', 0.0),
         ];
-        
+
         return new OpenAIConnector($config);
     }
-    
+
     /**
      * Create an Anthropic connector.
      *
@@ -93,12 +93,12 @@ class PhpSwarmFactory
     {
         // Get API key from config or options
         $apiKey = $options['api_key'] ?? $this->config->get('llm.anthropic.api_key');
-        
+
         // Get other options
         $model = $options['model'] ?? $this->config->get('llm.anthropic.model', 'claude-3-sonnet-20240229');
         $temperature = $options['temperature'] ?? $this->config->get('llm.temperature', 0.7);
         $maxTokens = $options['max_tokens'] ?? $this->config->get('llm.max_tokens', 4096);
-        
+
         $connector = new \PhpSwarm\LLM\Anthropic\AnthropicConnector([
             'api_key' => $apiKey,
             'model' => $model,
@@ -106,13 +106,13 @@ class PhpSwarmFactory
             'max_tokens' => $maxTokens,
             'base_url' => $options['base_url'] ?? $this->config->get('llm.anthropic.base_url', 'https://api.anthropic.com'),
         ]);
-        
+
         // Store in registry
         $this->registry['llm_anthropic'] = $connector;
-        
+
         return $connector;
     }
-    
+
     /**
      * Create a memory instance based on the configured provider.
      *
@@ -123,7 +123,7 @@ class PhpSwarmFactory
     public function createMemory(array $options = []): MemoryInterface
     {
         $provider = $options['provider'] ?? $this->config->get('memory.provider', 'array');
-        
+
         return match ($provider) {
             'array' => $this->createArrayMemory($options),
             'redis' => $this->createRedisMemory($options),
@@ -131,7 +131,7 @@ class PhpSwarmFactory
             default => throw new PhpSwarmException("Unsupported memory provider: $provider"),
         };
     }
-    
+
     /**
      * Create an array memory instance.
      *
@@ -141,13 +141,13 @@ class PhpSwarmFactory
     private function createArrayMemory(array $options = []): MemoryInterface
     {
         $memory = new ArrayMemory();
-        
+
         // Store in registry
         $this->registry['memory_array'] = $memory;
-        
+
         return $memory;
     }
-    
+
     /**
      * Create a Redis memory instance.
      *
@@ -163,7 +163,7 @@ class PhpSwarmFactory
         $password = $options['password'] ?? $this->config->get('memory.redis.password');
         $prefix = $options['prefix'] ?? $this->config->get('memory.redis.prefix', 'phpswarm:');
         $ttl = $options['ttl'] ?? $this->config->get('memory.ttl', 3600);
-        
+
         $memory = new \PhpSwarm\Memory\RedisMemory([
             'host' => $host,
             'port' => $port,
@@ -172,13 +172,13 @@ class PhpSwarmFactory
             'prefix' => $prefix,
             'ttl' => $ttl,
         ]);
-        
+
         // Store in registry
         $this->registry['memory_redis'] = $memory;
-        
+
         return $memory;
     }
-    
+
     /**
      * Create a SQLite memory instance.
      *
@@ -191,25 +191,25 @@ class PhpSwarmFactory
         $dbPath = $options['db_path'] ?? $this->config->get('memory.sqlite.db_path', 'storage/memory.sqlite');
         $tableName = $options['table_name'] ?? $this->config->get('memory.sqlite.table_name', 'memory');
         $ttl = $options['ttl'] ?? $this->config->get('memory.ttl', 3600);
-        
+
         // Ensure the directory exists
         $directory = dirname($dbPath);
         if (!file_exists($directory) && $dbPath !== ':memory:') {
             mkdir($directory, 0755, true);
         }
-        
+
         $memory = new \PhpSwarm\Memory\SqliteMemory([
             'db_path' => $dbPath,
             'table_name' => $tableName,
             'ttl' => $ttl,
         ]);
-        
+
         // Store in registry
         $this->registry['memory_sqlite'] = $memory;
-        
+
         return $memory;
     }
-    
+
     /**
      * Create a tool instance by name.
      *
@@ -221,11 +221,11 @@ class PhpSwarmFactory
     public function createTool(string $name, array $options = []): ToolInterface
     {
         $registryKey = "tool.$name";
-        
+
         if (isset($this->registry[$registryKey]) && empty($options)) {
             return $this->registry[$registryKey];
         }
-        
+
         $tool = match ($name) {
             'calculator' => new CalculatorTool(),
             'web_search' => $this->createWebSearchTool($options),
@@ -233,14 +233,14 @@ class PhpSwarmFactory
             'file_system' => $this->createFileSystemTool($options),
             default => throw new PhpSwarmException("Unsupported tool: $name"),
         };
-        
+
         if (empty($options)) {
             $this->registry[$registryKey] = $tool;
         }
-        
+
         return $tool;
     }
-    
+
     /**
      * Create a web search tool.
      *
@@ -254,10 +254,10 @@ class PhpSwarmFactory
             'search_engine_id' => $options['search_engine_id'] ?? $this->config->get('tool.web_search.engine_id', ''),
             'service' => $options['service'] ?? $this->config->get('tool.web_search.service', 'google'),
         ];
-        
+
         return new WebSearchTool($config);
     }
-    
+
     /**
      * Create a weather tool.
      *
@@ -270,10 +270,10 @@ class PhpSwarmFactory
             'api_key' => $options['api_key'] ?? $this->config->get('tool.weather.api_key', ''),
             'service' => $options['service'] ?? $this->config->get('tool.weather.service', 'openweathermap'),
         ];
-        
+
         return new WeatherTool($config);
     }
-    
+
     /**
      * Create a file system tool.
      *
@@ -286,12 +286,12 @@ class PhpSwarmFactory
             'base_directory' => $this->config->get('tool.file_system.base_directory', getcwd()),
             'allowed_operations' => $this->config->get('tool.file_system.allowed_operations', null),
         ];
-        
+
         $mergedOptions = array_merge($defaultOptions, $options);
-        
+
         return new FileSystemTool($mergedOptions);
     }
-    
+
     /**
      * Create an agent builder with preconfigured components.
      *
@@ -301,45 +301,45 @@ class PhpSwarmFactory
     public function createAgentBuilder(array $options = []): AgentBuilder
     {
         $builder = Agent::create();
-        
+
         // Set LLM if configured
         if ($this->config->has('llm.provider') || isset($options['llm'])) {
             $llmOptions = $options['llm'] ?? [];
             $builder->withLLM($this->createLLM($llmOptions));
         }
-        
+
         // Set memory if configured
         if ($this->config->has('memory.provider') || isset($options['memory'])) {
             $memoryOptions = $options['memory'] ?? [];
             $builder->withMemory($this->createMemory($memoryOptions));
         }
-        
+
         // Set verbose logging if configured
         $verboseLogging = $options['verbose_logging'] ?? $this->config->get('agent.verbose', false);
         if ($verboseLogging) {
             $builder->withVerboseLogging();
         }
-        
+
         // Set max iterations if configured
         $maxIterations = $options['max_iterations'] ?? $this->config->get('agent.max_iterations', 10);
         $builder->withMaxIterations((int) $maxIterations);
-        
+
         // Set delegation if configured
         $allowDelegation = $options['allow_delegation'] ?? $this->config->get('agent.delegation', false);
         if ($allowDelegation) {
             $builder->allowDelegation();
         }
-        
+
         // Add default tools if specified
         if (isset($options['tools']) && is_array($options['tools'])) {
             foreach ($options['tools'] as $toolName) {
                 $builder->addTool($this->createTool($toolName));
             }
         }
-        
+
         return $builder;
     }
-    
+
     /**
      * Create an agent with the specified options.
      *
@@ -352,18 +352,18 @@ class PhpSwarmFactory
     public function createAgent(string $name, string $role, string $goal, array $options = []): Agent
     {
         $builder = $this->createAgentBuilder($options);
-        
+
         $builder->withName($name)
                 ->withRole($role)
                 ->withGoal($goal);
-        
+
         if (isset($options['backstory'])) {
             $builder->withBackstory($options['backstory']);
         }
-        
+
         return $builder->build();
     }
-    
+
     /**
      * Get the configuration instance.
      *
@@ -373,7 +373,7 @@ class PhpSwarmFactory
     {
         return $this->config;
     }
-    
+
     /**
      * Create a logger instance.
      *
@@ -383,13 +383,13 @@ class PhpSwarmFactory
     public function createLogger(array $options = []): \PhpSwarm\Contract\Logger\LoggerInterface
     {
         $type = $options['type'] ?? $this->config->get('logger.type', 'file');
-        
+
         return match ($type) {
             'file' => $this->createFileLogger($options),
             default => throw new PhpSwarmException("Unsupported logger type: $type"),
         };
     }
-    
+
     /**
      * Create a file logger.
      *
@@ -402,26 +402,26 @@ class PhpSwarmFactory
         $minLevel = $options['min_level'] ?? $this->config->get('logger.file.min_level', 'debug');
         $includeTimestamps = $options['include_timestamps'] ?? $this->config->get('logger.file.include_timestamps', true);
         $timestampFormat = $options['timestamp_format'] ?? $this->config->get('logger.file.timestamp_format', 'Y-m-d H:i:s');
-        
+
         // Ensure log directory exists
         $logDir = dirname($logFile);
         if (!file_exists($logDir)) {
             mkdir($logDir, 0755, true);
         }
-        
+
         $logger = new \PhpSwarm\Logger\FileLogger(
             $logFile,
             $minLevel,
             $includeTimestamps,
             $timestampFormat
         );
-        
+
         // Store in registry
         $this->registry['logger_file'] = $logger;
-        
+
         return $logger;
     }
-    
+
     /**
      * Create a performance monitor.
      *
@@ -431,28 +431,28 @@ class PhpSwarmFactory
     public function createMonitor(array $options = []): \PhpSwarm\Contract\Logger\MonitorInterface
     {
         $withLogger = $options['with_logger'] ?? $this->config->get('monitor.with_logger', true);
-        
+
         $logger = null;
         if ($withLogger) {
             $logger = $options['logger'] ?? null;
-            
+
             if (!$logger && isset($this->registry['logger_file'])) {
                 $logger = $this->registry['logger_file'];
             }
-            
+
             if (!$logger) {
                 $logger = $this->createLogger();
             }
         }
-        
+
         $monitor = new \PhpSwarm\Logger\PerformanceMonitor($logger);
-        
+
         // Store in registry
         $this->registry['monitor'] = $monitor;
-        
+
         return $monitor;
     }
-    
+
     /**
      * Create a workflow.
      *
@@ -468,39 +468,39 @@ class PhpSwarmFactory
     ): \PhpSwarm\Contract\Workflow\WorkflowInterface {
         $logger = $options['logger'] ?? null;
         $monitor = $options['monitor'] ?? null;
-        
+
         // Use existing logger if available
         if (!$logger && isset($this->registry['logger_file'])) {
             $logger = $this->registry['logger_file'];
         }
-        
+
         // Use existing monitor if available
         if (!$monitor && isset($this->registry['monitor'])) {
             $monitor = $this->registry['monitor'];
         }
-        
+
         // Create logger if needed
         if (!$logger && ($options['create_logger'] ?? $this->config->get('workflow.create_logger', true))) {
             $logger = $this->createLogger();
         }
-        
+
         // Create monitor if needed
         if (!$monitor && ($options['create_monitor'] ?? $this->config->get('workflow.create_monitor', true))) {
             $monitor = $this->createMonitor(['logger' => $logger]);
         }
-        
+
         $workflow = new \PhpSwarm\Workflow\Workflow($name, $description, $logger, $monitor);
-        
+
         // Set max parallel steps if specified
         if (isset($options['max_parallel_steps'])) {
             $workflow->setMaxParallelSteps($options['max_parallel_steps']);
         } elseif ($this->config->has('workflow.max_parallel_steps')) {
             $workflow->setMaxParallelSteps($this->config->get('workflow.max_parallel_steps'));
         }
-        
+
         return $workflow;
     }
-    
+
     /**
      * Create an agent workflow step.
      *
@@ -518,7 +518,7 @@ class PhpSwarmFactory
     ): \PhpSwarm\Contract\Workflow\WorkflowStepInterface {
         return new \PhpSwarm\Workflow\AgentStep($name, $task, $description, $agent);
     }
-    
+
     /**
      * Create a function workflow step.
      *
@@ -534,4 +534,4 @@ class PhpSwarmFactory
     ): \PhpSwarm\Contract\Workflow\WorkflowStepInterface {
         return new \PhpSwarm\Workflow\FunctionStep($name, $function, $description);
     }
-} 
+}

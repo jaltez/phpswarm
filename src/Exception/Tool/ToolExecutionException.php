@@ -15,7 +15,7 @@ class ToolExecutionException extends PhpSwarmException
      * @var string|null The name of the tool that caused the exception
      */
     private ?string $toolName;
-    
+
     /**
      * Create a new ToolExecutionException.
      *
@@ -31,10 +31,10 @@ class ToolExecutionException extends PhpSwarmException
         ?string $toolName = null
     ) {
         parent::__construct($message, $code, $previous);
-        
+
         $this->toolName = $toolName;
     }
-    
+
     /**
      * Get the name of the tool that caused the exception.
      *
@@ -44,7 +44,7 @@ class ToolExecutionException extends PhpSwarmException
     {
         return $this->toolName;
     }
-    
+
     /**
      * Set the name of the tool that caused the exception.
      *
@@ -54,7 +54,7 @@ class ToolExecutionException extends PhpSwarmException
     public function setToolName(string $toolName): self
     {
         $this->toolName = $toolName;
-        
+
         return $this;
     }
-} 
+}

@@ -15,47 +15,47 @@ class OpenAIResponse implements LLMResponseInterface
      * @var array<string, mixed> The raw response data from OpenAI
      */
     private array $rawResponse;
-    
+
     /**
      * @var string The content/text of the response
      */
     private string $content;
-    
+
     /**
      * @var array<array<string, mixed>> Tool calls extracted from the response
      */
     private array $toolCalls = [];
-    
+
     /**
      * @var string The model used for the response
      */
     private string $model;
-    
+
     /**
      * @var int|null The number of prompt tokens used
      */
     private ?int $promptTokens = null;
-    
+
     /**
      * @var int|null The number of completion tokens used
      */
     private ?int $completionTokens = null;
-    
+
     /**
      * @var int|null The total number of tokens used
      */
     private ?int $totalTokens = null;
-    
+
     /**
      * @var string|null The finish reason
      */
     private ?string $finishReason = null;
-    
+
     /**
      * @var array<string, mixed> Additional metadata
      */
     private array $metadata = [];
-    
+
     /**
      * Create a new OpenAIResponse instance.
      *
@@ -66,7 +66,7 @@ class OpenAIResponse implements LLMResponseInterface
         $this->rawResponse = $rawResponse;
         $this->parseResponse();
     }
-    
+
     /**
      * Parse the raw response to extract relevant data.
      *
@@ -77,26 +77,26 @@ class OpenAIResponse implements LLMResponseInterface
         // Extract the content
         $message = $this->rawResponse['choices'][0]['message'] ?? [];
         $this->content = $message['content'] ?? '';
-        
+
         // Extract tool calls
         if (isset($message['tool_calls']) && is_array($message['tool_calls'])) {
             $this->toolCalls = $message['tool_calls'];
         }
-        
+
         // Extract model
         $this->model = $this->rawResponse['model'] ?? 'unknown';
-        
+
         // Extract token usage
         if (isset($this->rawResponse['usage']) && is_array($this->rawResponse['usage'])) {
             $this->promptTokens = $this->rawResponse['usage']['prompt_tokens'] ?? null;
             $this->completionTokens = $this->rawResponse['usage']['completion_tokens'] ?? null;
             $this->totalTokens = $this->rawResponse['usage']['total_tokens'] ?? null;
         }
-        
+
         // Extract finish reason
         $this->finishReason = $this->rawResponse['choices'][0]['finish_reason'] ?? null;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -104,7 +104,7 @@ class OpenAIResponse implements LLMResponseInterface
     {
         return $this->content;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -112,7 +112,7 @@ class OpenAIResponse implements LLMResponseInterface
     {
         return $this->rawResponse;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -120,7 +120,7 @@ class OpenAIResponse implements LLMResponseInterface
     {
         return $this->toolCalls;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -128,7 +128,7 @@ class OpenAIResponse implements LLMResponseInterface
     {
         return !empty($this->toolCalls);
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -136,7 +136,7 @@ class OpenAIResponse implements LLMResponseInterface
     {
         return $this->promptTokens;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -144,7 +144,7 @@ class OpenAIResponse implements LLMResponseInterface
     {
         return $this->completionTokens;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -152,7 +152,7 @@ class OpenAIResponse implements LLMResponseInterface
     {
         return $this->totalTokens;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -160,7 +160,7 @@ class OpenAIResponse implements LLMResponseInterface
     {
         return $this->model;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -168,7 +168,7 @@ class OpenAIResponse implements LLMResponseInterface
     {
         return $this->metadata;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -176,7 +176,7 @@ class OpenAIResponse implements LLMResponseInterface
     {
         return $this->finishReason;
     }
-    
+
     /**
      * Add metadata to the response.
      *
@@ -189,4 +189,4 @@ class OpenAIResponse implements LLMResponseInterface
         $this->metadata[$key] = $value;
         return $this;
     }
-} 
+}

@@ -16,7 +16,7 @@ class AsyncManager
      * @var array<string, AsyncOperationInterface> Active operations
      */
     private array $operations = [];
-    
+
     /**
      * Create a new asynchronous operation.
      *
@@ -28,14 +28,14 @@ class AsyncManager
     {
         $asyncOp = new AsyncOperation($operation);
         $this->operations[$asyncOp->getId()] = $asyncOp;
-        
+
         if ($autoStart) {
             $asyncOp->start();
         }
-        
+
         return $asyncOp;
     }
-    
+
     /**
      * Get an operation by ID.
      *
@@ -46,7 +46,7 @@ class AsyncManager
     {
         return $this->operations[$id] ?? null;
     }
-    
+
     /**
      * Get all active operations.
      *
@@ -56,7 +56,7 @@ class AsyncManager
     {
         return $this->operations;
     }
-    
+
     /**
      * Remove a completed operation.
      *
@@ -68,17 +68,17 @@ class AsyncManager
         if (!isset($this->operations[$id])) {
             return false;
         }
-        
+
         $operation = $this->operations[$id];
-        
+
         if (!$operation->isComplete()) {
             return false;
         }
-        
+
         unset($this->operations[$id]);
         return true;
     }
-    
+
     /**
      * Cancel an operation.
      *
@@ -90,17 +90,17 @@ class AsyncManager
         if (!isset($this->operations[$id])) {
             return false;
         }
-        
+
         $operation = $this->operations[$id];
         $result = $operation->cancel();
-        
+
         if ($result) {
             unset($this->operations[$id]);
         }
-        
+
         return $result;
     }
-    
+
     /**
      * Wait for multiple operations to complete.
      *
@@ -114,20 +114,20 @@ class AsyncManager
         $startTime = time();
         $results = [];
         $pendingIds = $ids;
-        
+
         while (!empty($pendingIds)) {
             if ($timeout !== null && (time() - $startTime) >= $timeout) {
                 throw new AsyncOperationException('Operations timed out');
             }
-            
+
             foreach ($pendingIds as $key => $id) {
                 if (!isset($this->operations[$id])) {
                     unset($pendingIds[$key]);
                     continue;
                 }
-                
+
                 $operation = $this->operations[$id];
-                
+
                 if ($operation->isComplete()) {
                     if ($operation->getError()) {
                         throw new AsyncOperationException(
@@ -136,21 +136,21 @@ class AsyncManager
                             $operation->getError()
                         );
                     }
-                    
+
                     $results[$id] = $operation->getResult();
                     unset($pendingIds[$key]);
                 }
             }
-            
+
             if (!empty($pendingIds)) {
                 // Sleep for a short time to avoid CPU spinning
                 usleep(10000); // 10ms
             }
         }
-        
+
         return $results;
     }
-    
+
     /**
      * Wait for all operations to complete.
      *
@@ -162,7 +162,7 @@ class AsyncManager
     {
         return $this->waitForOperations(array_keys($this->operations), $timeout);
     }
-    
+
     /**
      * Cancel all operations.
      *
@@ -171,16 +171,16 @@ class AsyncManager
     public function cancelAll(): int
     {
         $count = 0;
-        
+
         foreach (array_keys($this->operations) as $id) {
             if ($this->cancelOperation($id)) {
                 $count++;
             }
         }
-        
+
         return $count;
     }
-    
+
     /**
      * Clean up completed operations.
      *
@@ -189,16 +189,16 @@ class AsyncManager
     public function cleanup(): int
     {
         $count = 0;
-        
+
         foreach (array_keys($this->operations) as $id) {
             $operation = $this->operations[$id];
-            
+
             if ($operation->isComplete()) {
                 unset($this->operations[$id]);
                 $count++;
             }
         }
-        
+
         return $count;
     }
-} 
+}

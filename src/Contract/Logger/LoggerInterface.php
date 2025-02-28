@@ -6,8 +6,8 @@ namespace PhpSwarm\Contract\Logger;
 
 /**
  * Interface for all loggers in the PHPSwarm system.
- * 
- * This interface follows PSR-3 style logging levels but is 
+ *
+ * This interface follows PSR-3 style logging levels but is
  * specifically tailored for PHPSwarm needs.
  */
 interface LoggerInterface
@@ -20,7 +20,7 @@ interface LoggerInterface
      * @return void
      */
     public function emergency(string $message, array $context = []): void;
-    
+
     /**
      * Action must be taken immediately.
      *
@@ -29,7 +29,7 @@ interface LoggerInterface
      * @return void
      */
     public function alert(string $message, array $context = []): void;
-    
+
     /**
      * Critical conditions.
      *
@@ -38,7 +38,7 @@ interface LoggerInterface
      * @return void
      */
     public function critical(string $message, array $context = []): void;
-    
+
     /**
      * Runtime errors that do not require immediate action.
      *
@@ -47,7 +47,7 @@ interface LoggerInterface
      * @return void
      */
     public function error(string $message, array $context = []): void;
-    
+
     /**
      * Exceptional occurrences that are not errors.
      *
@@ -56,7 +56,7 @@ interface LoggerInterface
      * @return void
      */
     public function warning(string $message, array $context = []): void;
-    
+
     /**
      * Normal but significant events.
      *
@@ -65,7 +65,7 @@ interface LoggerInterface
      * @return void
      */
     public function notice(string $message, array $context = []): void;
-    
+
     /**
      * Interesting events.
      *
@@ -74,7 +74,7 @@ interface LoggerInterface
      * @return void
      */
     public function info(string $message, array $context = []): void;
-    
+
     /**
      * Detailed debug information.
      *
@@ -83,7 +83,7 @@ interface LoggerInterface
      * @return void
      */
     public function debug(string $message, array $context = []): void;
-    
+
     /**
      * Logs with an arbitrary level.
      *
@@ -93,14 +93,14 @@ interface LoggerInterface
      * @return void
      */
     public function log(string $level, string $message, array $context = []): void;
-    
+
     /**
      * Gets the minimum logging level for this logger.
      *
      * @return string The minimum log level
      */
     public function getMinLevel(): string;
-    
+
     /**
      * Sets the minimum logging level for this logger.
      *
@@ -108,4 +108,4 @@ interface LoggerInterface
      * @return self
      */
     public function setMinLevel(string $level): self;
-} 
+}

@@ -13,17 +13,17 @@ class SecurityMetrics
      * @var array<string, int> Counters for various security events
      */
     private array $counters = [];
-    
+
     /**
      * @var array<string, array<string, mixed>> Details about recent security events
      */
     private array $recentEvents = [];
-    
+
     /**
      * @var int Maximum number of recent events to store
      */
     private int $maxRecentEvents;
-    
+
     /**
      * Create a new SecurityMetrics instance.
      *
@@ -34,7 +34,7 @@ class SecurityMetrics
         $this->maxRecentEvents = $maxRecentEvents;
         $this->initializeCounters();
     }
-    
+
     /**
      * Record a security event.
      *
@@ -52,7 +52,7 @@ class SecurityMetrics
         } else {
             $this->counters[$counterKey] = 1;
         }
-        
+
         // Also increment the total for this type
         $totalKey = $type . '_total';
         if (isset($this->counters[$totalKey])) {
@@ -60,7 +60,7 @@ class SecurityMetrics
         } else {
             $this->counters[$totalKey] = 1;
         }
-        
+
         // Add to recent events
         $this->recentEvents[] = [
             'timestamp' => time(),
@@ -68,15 +68,15 @@ class SecurityMetrics
             'result' => $result,
             'details' => $details,
         ];
-        
+
         // Trim recent events if needed
         if (count($this->recentEvents) > $this->maxRecentEvents) {
             array_shift($this->recentEvents);
         }
-        
+
         return $this;
     }
-    
+
     /**
      * Record an input validation event.
      *
@@ -92,7 +92,7 @@ class SecurityMetrics
             $details
         );
     }
-    
+
     /**
      * Record a path safety check event.
      *
@@ -108,7 +108,7 @@ class SecurityMetrics
             $details
         );
     }
-    
+
     /**
      * Record a prompt injection detection event.
      *
@@ -124,7 +124,7 @@ class SecurityMetrics
             $details
         );
     }
-    
+
     /**
      * Record a command safety check event.
      *
@@ -140,7 +140,7 @@ class SecurityMetrics
             $details
         );
     }
-    
+
     /**
      * Get all security counters.
      *
@@ -150,7 +150,7 @@ class SecurityMetrics
     {
         return $this->counters;
     }
-    
+
     /**
      * Get the value of a specific counter.
      *
@@ -161,7 +161,7 @@ class SecurityMetrics
     {
         return $this->counters[$key] ?? 0;
     }
-    
+
     /**
      * Get recent security events.
      *
@@ -173,34 +173,34 @@ class SecurityMetrics
     public function getRecentEvents(?int $limit = null, ?string $type = null, ?string $result = null): array
     {
         $events = $this->recentEvents;
-        
+
         // Filter by type if specified
         if ($type !== null) {
             $events = array_filter($events, function ($event) use ($type) {
                 return $event['type'] === $type;
             });
         }
-        
+
         // Filter by result if specified
         if ($result !== null) {
             $events = array_filter($events, function ($event) use ($result) {
                 return $event['result'] === $result;
             });
         }
-        
+
         // Sort by timestamp (newest first)
         usort($events, function ($a, $b) {
             return $b['timestamp'] <=> $a['timestamp'];
         });
-        
+
         // Apply limit if specified
         if ($limit !== null && $limit > 0) {
             $events = array_slice($events, 0, $limit);
         }
-        
+
         return $events;
     }
-    
+
     /**
      * Get security statistics.
      *
@@ -235,31 +235,31 @@ class SecurityMetrics
             ],
             'total_events' => count($this->recentEvents),
         ];
-        
+
         // Calculate rates
         if ($stats['input_validation']['total'] > 0) {
-            $stats['input_validation']['pass_rate'] = 
+            $stats['input_validation']['pass_rate'] =
                 $stats['input_validation']['passed'] / $stats['input_validation']['total'] * 100;
         }
-        
+
         if ($stats['path_safety']['total'] > 0) {
-            $stats['path_safety']['pass_rate'] = 
+            $stats['path_safety']['pass_rate'] =
                 $stats['path_safety']['passed'] / $stats['path_safety']['total'] * 100;
         }
-        
+
         if ($stats['prompt_injection']['total'] > 0) {
-            $stats['prompt_injection']['clean_rate'] = 
+            $stats['prompt_injection']['clean_rate'] =
                 $stats['prompt_injection']['clean'] / $stats['prompt_injection']['total'] * 100;
         }
-        
+
         if ($stats['command_safety']['total'] > 0) {
-            $stats['command_safety']['pass_rate'] = 
+            $stats['command_safety']['pass_rate'] =
                 $stats['command_safety']['passed'] / $stats['command_safety']['total'] * 100;
         }
-        
+
         return $stats;
     }
-    
+
     /**
      * Reset all counters and clear recent events.
      *
@@ -271,7 +271,7 @@ class SecurityMetrics
         $this->recentEvents = [];
         return $this;
     }
-    
+
     /**
      * Initialize counters with default values.
      *
@@ -284,21 +284,21 @@ class SecurityMetrics
             'input_validation_total' => 0,
             'input_validation_passed' => 0,
             'input_validation_failed' => 0,
-            
+
             // Path safety
             'path_safety_total' => 0,
             'path_safety_passed' => 0,
             'path_safety_failed' => 0,
-            
+
             // Prompt injection
             'prompt_injection_total' => 0,
             'prompt_injection_clean' => 0,
             'prompt_injection_detected' => 0,
-            
+
             // Command safety
             'command_safety_total' => 0,
             'command_safety_passed' => 0,
             'command_safety_failed' => 0,
         ];
     }
-} 
+}

@@ -15,42 +15,42 @@ class AgentResponse implements AgentResponseInterface
      * @var string The task given to the agent
      */
     private string $task;
-    
+
     /**
      * @var string The final answer from the agent
      */
     private string $finalAnswer;
-    
+
     /**
      * @var array<mixed> The execution trace
      */
     private array $trace;
-    
+
     /**
      * @var float The execution time in seconds
      */
     private float $executionTime;
-    
+
     /**
      * @var bool Whether the task was completed successfully
      */
     private bool $successful;
-    
+
     /**
      * @var string|null Any error that occurred
      */
     private ?string $error;
-    
+
     /**
      * @var array<string, int> Token usage information
      */
     private array $tokenUsage;
-    
+
     /**
      * @var array<string, mixed> Additional metadata
      */
     private array $metadata;
-    
+
     /**
      * Create a new AgentResponse instance.
      *
@@ -82,7 +82,7 @@ class AgentResponse implements AgentResponseInterface
         $this->tokenUsage = $tokenUsage;
         $this->metadata = $metadata;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -90,7 +90,7 @@ class AgentResponse implements AgentResponseInterface
     {
         return $this->task;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -98,7 +98,7 @@ class AgentResponse implements AgentResponseInterface
     {
         return $this->finalAnswer;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -106,7 +106,7 @@ class AgentResponse implements AgentResponseInterface
     {
         return $this->trace;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -114,7 +114,7 @@ class AgentResponse implements AgentResponseInterface
     {
         return $this->executionTime;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -122,7 +122,7 @@ class AgentResponse implements AgentResponseInterface
     {
         return $this->successful;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -130,7 +130,7 @@ class AgentResponse implements AgentResponseInterface
     {
         return $this->error;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -138,7 +138,7 @@ class AgentResponse implements AgentResponseInterface
     {
         return $this->tokenUsage;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -146,7 +146,7 @@ class AgentResponse implements AgentResponseInterface
     {
         return $this->metadata;
     }
-    
+
     /**
      * Set the final answer.
      *
@@ -158,7 +158,7 @@ class AgentResponse implements AgentResponseInterface
         $this->finalAnswer = $finalAnswer;
         return $this;
     }
-    
+
     /**
      * Add to the execution trace.
      *
@@ -170,7 +170,7 @@ class AgentResponse implements AgentResponseInterface
         $this->trace[] = $traceItem;
         return $this;
     }
-    
+
     /**
      * Set the execution status.
      *
@@ -184,7 +184,7 @@ class AgentResponse implements AgentResponseInterface
         $this->error = $error;
         return $this;
     }
-    
+
     /**
      * Add token usage information.
      *
@@ -197,7 +197,7 @@ class AgentResponse implements AgentResponseInterface
         $this->tokenUsage[$key] = ($this->tokenUsage[$key] ?? 0) + $count;
         return $this;
     }
-    
+
     /**
      * Add metadata.
      *
@@ -210,4 +210,4 @@ class AgentResponse implements AgentResponseInterface
         $this->metadata[$key] = $value;
         return $this;
     }
-} 
+}

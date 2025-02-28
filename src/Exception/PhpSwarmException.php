@@ -10,4 +10,4 @@ namespace PhpSwarm\Exception;
 class PhpSwarmException extends \Exception
 {
     // Base exception class
-} 
+}

@@ -12,4 +12,4 @@ use PhpSwarm\Exception\PhpSwarmException;
 class LLMException extends PhpSwarmException
 {
     // LLM-specific exception
-} 
+}

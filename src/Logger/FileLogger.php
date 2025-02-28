@@ -25,32 +25,32 @@ class FileLogger implements LoggerInterface
         'alert' => 6,
         'emergency' => 7,
     ];
-    
+
     /**
      * @var string Path to the log file
      */
     private string $logFile;
-    
+
     /**
      * @var string Minimum log level to record
      */
     private string $minLevel;
-    
+
     /**
      * @var resource|null File handle for the log file
      */
     private $fileHandle = null;
-    
+
     /**
      * @var bool Whether to include timestamps in log messages
      */
     private bool $includeTimestamps;
-    
+
     /**
      * @var string The format for log timestamps
      */
     private string $timestampFormat;
-    
+
     /**
      * Create a new FileLogger instance.
      *
@@ -70,7 +70,7 @@ class FileLogger implements LoggerInterface
         $this->setMinLevel($minLevel);
         $this->includeTimestamps = $includeTimestamps;
         $this->timestampFormat = $timestampFormat;
-        
+
         // Ensure log directory exists
         $logDir = dirname($logFile);
         if (!file_exists($logDir)) {
@@ -78,14 +78,14 @@ class FileLogger implements LoggerInterface
                 throw new PhpSwarmException("Failed to create log directory: $logDir");
             }
         }
-        
+
         // Open log file for appending
         $this->fileHandle = fopen($logFile, 'a');
         if ($this->fileHandle === false) {
             throw new PhpSwarmException("Failed to open log file: $logFile");
         }
     }
-    
+
     /**
      * Destructor to close file handle.
      */
@@ -95,7 +95,7 @@ class FileLogger implements LoggerInterface
             fclose($this->fileHandle);
         }
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -103,7 +103,7 @@ class FileLogger implements LoggerInterface
     {
         $this->log('emergency', $message, $context);
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -111,7 +111,7 @@ class FileLogger implements LoggerInterface
     {
         $this->log('alert', $message, $context);
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -119,7 +119,7 @@ class FileLogger implements LoggerInterface
     {
         $this->log('critical', $message, $context);
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -127,7 +127,7 @@ class FileLogger implements LoggerInterface
     {
         $this->log('error', $message, $context);
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -135,7 +135,7 @@ class FileLogger implements LoggerInterface
     {
         $this->log('warning', $message, $context);
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -143,7 +143,7 @@ class FileLogger implements LoggerInterface
     {
         $this->log('notice', $message, $context);
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -151,7 +151,7 @@ class FileLogger implements LoggerInterface
     {
         $this->log('info', $message, $context);
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -159,7 +159,7 @@ class FileLogger implements LoggerInterface
     {
         $this->log('debug', $message, $context);
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -168,21 +168,21 @@ class FileLogger implements LoggerInterface
         if (!isset(self::LEVELS[$level])) {
             throw new PhpSwarmException("Invalid log level: $level");
         }
-        
+
         // Check if this level should be logged
         if (self::LEVELS[$level] < self::LEVELS[$this->minLevel]) {
             return;
         }
-        
+
         // Format the log message
         $formattedMessage = $this->formatMessage($level, $message, $context);
-        
+
         // Write to log file
         if ($this->fileHandle) {
             fwrite($this->fileHandle, $formattedMessage . PHP_EOL);
         }
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -190,7 +190,7 @@ class FileLogger implements LoggerInterface
     {
         return $this->minLevel;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -199,11 +199,11 @@ class FileLogger implements LoggerInterface
         if (!isset(self::LEVELS[$level])) {
             throw new PhpSwarmException("Invalid log level: $level");
         }
-        
+
         $this->minLevel = $level;
         return $this;
     }
-    
+
     /**
      * Format a log message.
      *
@@ -215,28 +215,28 @@ class FileLogger implements LoggerInterface
     private function formatMessage(string $level, string $message, array $context): string
     {
         $prefix = '';
-        
+
         // Add timestamp if enabled
         if ($this->includeTimestamps) {
             $timestamp = date($this->timestampFormat);
             $prefix .= "[$timestamp] ";
         }
-        
+
         // Add level
         $prefix .= strtoupper($level) . ': ';
-        
+
         // Interpolate context into message
         $interpolatedMessage = $this->interpolate($message, $context);
-        
+
         // Format context as JSON if not empty
         $contextString = '';
         if (!empty($context)) {
             $contextString = ' ' . json_encode($context, JSON_UNESCAPED_SLASHES);
         }
-        
+
         return $prefix . $interpolatedMessage . $contextString;
     }
-    
+
     /**
      * Interpolate context values into message placeholders.
      *
@@ -253,12 +253,12 @@ class FileLogger implements LoggerInterface
             if (!is_scalar($val) && !is_null($val)) {
                 continue;
             }
-            
+
             // Format the value
             $replace['{' . $key . '}'] = $val === null ? 'null' : (string) $val;
         }
-        
+
         // Interpolate replacement values into the message
         return strtr($message, $replace);
     }
-} 
+}

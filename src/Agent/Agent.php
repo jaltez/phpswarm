@@ -21,52 +21,52 @@ class Agent implements AgentInterface
      * @var string Agent name
      */
     private string $name;
-    
+
     /**
      * @var string Agent role
      */
     private string $role;
-    
+
     /**
      * @var string Agent goal
      */
     private string $goal;
-    
+
     /**
      * @var string Agent backstory
      */
     private string $backstory;
-    
+
     /**
      * @var LLMInterface|null The LLM for this agent
      */
     private ?LLMInterface $llm = null;
-    
+
     /**
      * @var MemoryInterface The memory system
      */
     private MemoryInterface $memory;
-    
+
     /**
      * @var array<ToolInterface> Available tools
      */
     private array $tools = [];
-    
+
     /**
      * @var bool Whether to enable verbose logging
      */
     private bool $verboseLogging = false;
-    
+
     /**
      * @var bool Whether to allow the agent to delegate tasks
      */
     private bool $allowDelegation = false;
-    
+
     /**
      * @var int Maximum iterations to run before stopping
      */
     private int $maxIterations = 10;
-    
+
     /**
      * Create a new Agent instance.
      *
@@ -92,7 +92,7 @@ class Agent implements AgentInterface
         $this->llm = $llm;
         $this->memory = $memory ?? new ArrayMemory();
     }
-    
+
     /**
      * Create a new Agent builder.
      *
@@ -102,7 +102,7 @@ class Agent implements AgentInterface
     {
         return new AgentBuilder();
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -111,13 +111,13 @@ class Agent implements AgentInterface
         if (!$this->llm) {
             throw new AgentException('No LLM has been set for this agent.');
         }
-        
+
         $startTime = microtime(true);
-        
+
         // Placeholder for actual agent logic
         $response = new AgentResponse(
             $task,
-            "This is a placeholder response. The agent '{$this->name}' would process task: $task", 
+            "This is a placeholder response. The agent '{$this->name}' would process task: $task",
             [
                 'task' => $task,
                 'context' => $context,
@@ -125,10 +125,10 @@ class Agent implements AgentInterface
             ],
             microtime(true) - $startTime
         );
-        
+
         return $response;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -136,7 +136,7 @@ class Agent implements AgentInterface
     {
         return $this->name;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -144,7 +144,7 @@ class Agent implements AgentInterface
     {
         return $this->role;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -152,7 +152,7 @@ class Agent implements AgentInterface
     {
         return $this->goal;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -160,7 +160,7 @@ class Agent implements AgentInterface
     {
         return $this->backstory;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -168,7 +168,7 @@ class Agent implements AgentInterface
     {
         return $this->tools;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -177,7 +177,7 @@ class Agent implements AgentInterface
         $this->tools[] = $tool;
         return $this;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -186,7 +186,7 @@ class Agent implements AgentInterface
         $this->llm = $llm;
         return $this;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -195,7 +195,7 @@ class Agent implements AgentInterface
         $this->memory = $memory;
         return $this;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -204,7 +204,7 @@ class Agent implements AgentInterface
         $this->verboseLogging = $verbose;
         return $this;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -213,7 +213,7 @@ class Agent implements AgentInterface
         $this->allowDelegation = $allowDelegation;
         return $this;
     }
-    
+
     /**
      * Set the maximum number of iterations for the agent to run.
      *
@@ -225,7 +225,7 @@ class Agent implements AgentInterface
         $this->maxIterations = $maxIterations;
         return $this;
     }
-    
+
     /**
      * Get the LLM used by this agent.
      *
@@ -235,7 +235,7 @@ class Agent implements AgentInterface
     {
         return $this->llm;
     }
-    
+
     /**
      * Get the memory system used by this agent.
      *
@@ -245,7 +245,7 @@ class Agent implements AgentInterface
     {
         return $this->memory;
     }
-    
+
     /**
      * Check if verbose logging is enabled.
      *
@@ -255,7 +255,7 @@ class Agent implements AgentInterface
     {
         return $this->verboseLogging;
     }
-    
+
     /**
      * Check if task delegation is allowed.
      *
@@ -265,7 +265,7 @@ class Agent implements AgentInterface
     {
         return $this->allowDelegation;
     }
-    
+
     /**
      * Get the maximum number of iterations.
      *
@@ -275,4 +275,4 @@ class Agent implements AgentInterface
     {
         return $this->maxIterations;
     }
-} 
+}

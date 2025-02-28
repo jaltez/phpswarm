@@ -15,17 +15,17 @@ class ArrayMemory implements MemoryInterface
      * @var array<string, mixed> The memory storage
      */
     private array $storage = [];
-    
+
     /**
      * @var array<string, array<string, mixed>> Metadata storage
      */
     private array $metadata = [];
-    
+
     /**
      * @var array<string, \DateTimeImmutable> Timestamps for each memory
      */
     private array $timestamps = [];
-    
+
     /**
      * {@inheritdoc}
      */
@@ -35,7 +35,7 @@ class ArrayMemory implements MemoryInterface
         $this->metadata[$key] = $metadata;
         $this->timestamps[$key] = new \DateTimeImmutable();
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -43,7 +43,7 @@ class ArrayMemory implements MemoryInterface
     {
         return $this->storage[$key] ?? null;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -51,7 +51,7 @@ class ArrayMemory implements MemoryInterface
     {
         return isset($this->storage[$key]);
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -60,11 +60,11 @@ class ArrayMemory implements MemoryInterface
         if (!$this->has($key)) {
             return false;
         }
-        
+
         unset($this->storage[$key], $this->metadata[$key], $this->timestamps[$key]);
         return true;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -72,26 +72,26 @@ class ArrayMemory implements MemoryInterface
     {
         $results = [];
         $count = 0;
-        
+
         foreach ($this->storage as $key => $value) {
             // Very simple search implementation - just checks if the key or value contains the query
             $valueString = is_string($value) ? $value : json_encode($value);
             if (
-                str_contains($key, $query) || 
+                str_contains($key, $query) ||
                 (is_string($valueString) && str_contains($valueString, $query))
             ) {
                 $results[$key] = $value;
                 $count++;
-                
+
                 if ($count >= $limit) {
                     break;
                 }
             }
         }
-        
+
         return $results;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -101,7 +101,7 @@ class ArrayMemory implements MemoryInterface
         $this->metadata = [];
         $this->timestamps = [];
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -109,7 +109,7 @@ class ArrayMemory implements MemoryInterface
     {
         return $this->storage;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -117,7 +117,7 @@ class ArrayMemory implements MemoryInterface
     {
         return count($this->storage);
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -128,10 +128,10 @@ class ArrayMemory implements MemoryInterface
         usort($keys, function ($a, $b) {
             return $this->timestamps[$b] <=> $this->timestamps[$a];
         });
-        
+
         // Apply offset and limit
         $keys = array_slice($keys, $offset, $limit);
-        
+
         // Build the result array
         $result = [];
         foreach ($keys as $key) {
@@ -141,10 +141,10 @@ class ArrayMemory implements MemoryInterface
                 'timestamp' => $this->timestamps[$key],
             ];
         }
-        
+
         return $result;
     }
-    
+
     /**
      * Get the metadata for a specific key.
      *
@@ -155,7 +155,7 @@ class ArrayMemory implements MemoryInterface
     {
         return $this->metadata[$key] ?? null;
     }
-    
+
     /**
      * Get the timestamp for a specific key.
      *
@@ -166,4 +166,4 @@ class ArrayMemory implements MemoryInterface
     {
         return $this->timestamps[$key] ?? null;
     }
-} 
+}

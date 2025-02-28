@@ -10,7 +10,7 @@ use PhpSwarm\Contract\Tool\ToolInterface;
 
 /**
  * Interface for all agents in the PHPSwarm system.
- * 
+ *
  * An agent is an autonomous entity that can perform tasks, make decisions,
  * and use tools to accomplish objectives.
  */
@@ -24,42 +24,42 @@ interface AgentInterface
      * @return AgentResponseInterface The response from the agent
      */
     public function run(string $task, array $context = []): AgentResponseInterface;
-    
+
     /**
      * Get the name of the agent.
      *
      * @return string
      */
     public function getName(): string;
-    
+
     /**
      * Get the role of the agent.
      *
      * @return string
      */
     public function getRole(): string;
-    
+
     /**
      * Get the goal of the agent.
      *
      * @return string
      */
     public function getGoal(): string;
-    
+
     /**
      * Get the backstory of the agent.
      *
      * @return string
      */
     public function getBackstory(): string;
-    
+
     /**
      * Get all tools available to the agent.
      *
      * @return array<ToolInterface>
      */
     public function getTools(): array;
-    
+
     /**
      * Add a tool to the agent.
      *
@@ -67,7 +67,7 @@ interface AgentInterface
      * @return self
      */
     public function addTool(ToolInterface $tool): self;
-    
+
     /**
      * Set the LLM to be used by the agent.
      *
@@ -75,7 +75,7 @@ interface AgentInterface
      * @return self
      */
     public function withLLM(LLMInterface $llm): self;
-    
+
     /**
      * Set the memory system to be used by the agent.
      *
@@ -83,7 +83,7 @@ interface AgentInterface
      * @return self
      */
     public function withMemory(MemoryInterface $memory): self;
-    
+
     /**
      * Enable or disable verbose logging for the agent.
      *
@@ -91,7 +91,7 @@ interface AgentInterface
      * @return self
      */
     public function withVerboseLogging(bool $verbose = true): self;
-    
+
     /**
      * Set whether the agent can delegate tasks to other agents.
      *
@@ -99,4 +99,4 @@ interface AgentInterface
      * @return self
      */
     public function allowDelegation(bool $allowDelegation = true): self;
-} 
+}

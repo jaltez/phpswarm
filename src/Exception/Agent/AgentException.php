@@ -12,4 +12,4 @@ use PhpSwarm\Exception\PhpSwarmException;
 class AgentException extends PhpSwarmException
 {
     // Agent-specific exception
-} 
+}

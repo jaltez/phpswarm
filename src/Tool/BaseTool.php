@@ -16,27 +16,27 @@ abstract class BaseTool implements ToolInterface
      * @var string The name of the tool
      */
     protected string $name;
-    
+
     /**
      * @var string The description of the tool
      */
     protected string $description;
-    
+
     /**
      * @var array<string, array<string, mixed>> The parameters schema
      */
     protected array $parametersSchema = [];
-    
+
     /**
      * @var array<string> The tags associated with the tool
      */
     protected array $tags = [];
-    
+
     /**
      * @var bool Whether the tool requires authentication
      */
     protected bool $requiresAuth = false;
-    
+
     /**
      * Create a new BaseTool instance.
      *
@@ -48,7 +48,7 @@ abstract class BaseTool implements ToolInterface
         $this->name = $name;
         $this->description = $description;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -56,7 +56,7 @@ abstract class BaseTool implements ToolInterface
     {
         return $this->name;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -64,7 +64,7 @@ abstract class BaseTool implements ToolInterface
     {
         return $this->description;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -72,7 +72,7 @@ abstract class BaseTool implements ToolInterface
     {
         return $this->parametersSchema;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -80,7 +80,7 @@ abstract class BaseTool implements ToolInterface
     {
         return $this->tags;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -88,7 +88,7 @@ abstract class BaseTool implements ToolInterface
     {
         return true;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -96,7 +96,7 @@ abstract class BaseTool implements ToolInterface
     {
         return false;
     }
-    
+
     /**
      * Add a tag to the tool.
      *
@@ -108,10 +108,10 @@ abstract class BaseTool implements ToolInterface
         if (!in_array($tag, $this->tags, true)) {
             $this->tags[] = $tag;
         }
-        
+
         return $this;
     }
-    
+
     /**
      * Validate the parameters against the schema.
      *
@@ -123,24 +123,24 @@ abstract class BaseTool implements ToolInterface
     {
         foreach ($this->parametersSchema as $name => $schema) {
             $required = $schema['required'] ?? false;
-            
+
             if ($required && !isset($parameters[$name])) {
                 throw new ToolExecutionException("Missing required parameter: {$name}");
             }
-            
+
             if (!isset($parameters[$name])) {
                 continue;
             }
-            
+
             $value = $parameters[$name];
             $type = $schema['type'] ?? null;
-            
+
             if ($type && !$this->validateType($value, $type)) {
                 throw new ToolExecutionException(
                     "Invalid type for parameter {$name}: expected {$type}, got " . gettype($value)
                 );
             }
-            
+
             if (isset($schema['enum']) && !in_array($value, $schema['enum'], true)) {
                 throw new ToolExecutionException(
                     "Invalid value for parameter {$name}: must be one of [" . implode(', ', $schema['enum']) . "]"
@@ -148,7 +148,7 @@ abstract class BaseTool implements ToolInterface
             }
         }
     }
-    
+
     /**
      * Validate the type of a value.
      *
@@ -170,7 +170,7 @@ abstract class BaseTool implements ToolInterface
             default => false,
         };
     }
-    
+
     /**
      * Set whether the tool requires authentication.
      *
@@ -182,4 +182,4 @@ abstract class BaseTool implements ToolInterface
         $this->requiresAuth = $requiresAuth;
         return $this;
     }
-} 
+}

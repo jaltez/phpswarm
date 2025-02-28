@@ -17,42 +17,42 @@ class AgentStep implements WorkflowStepInterface
      * @var string The name of the step
      */
     private string $name;
-    
+
     /**
      * @var string The description of the step
      */
     private string $description;
-    
+
     /**
      * @var AgentInterface|null The agent to execute this step
      */
     private ?AgentInterface $agent = null;
-    
+
     /**
      * @var int|null The timeout in seconds
      */
     private ?int $timeout = null;
-    
+
     /**
      * @var bool Whether this step is required
      */
     private bool $required = true;
-    
+
     /**
      * @var array<string, string> Input mapping
      */
     private array $inputMapping = [];
-    
+
     /**
      * @var array<string, string> Output mapping
      */
     private array $outputMapping = [];
-    
+
     /**
      * @var string The task to execute
      */
     private string $task;
-    
+
     /**
      * Create a new AgentStep instance.
      *
@@ -72,7 +72,7 @@ class AgentStep implements WorkflowStepInterface
         $this->description = $description;
         $this->agent = $agent;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -81,10 +81,10 @@ class AgentStep implements WorkflowStepInterface
         if (!$this->agent) {
             throw new PhpSwarmException("No agent assigned to step '{$this->name}'");
         }
-        
+
         // Execute the task with the agent
         $response = $this->agent->run($this->interpolateTask($input), $input);
-        
+
         // Format the response to an associative array
         return [
             'content' => $response->getContent(),
@@ -92,7 +92,7 @@ class AgentStep implements WorkflowStepInterface
             'execution_time' => $response->getExecutionTime(),
         ];
     }
-    
+
     /**
      * Interpolate variables in the task description.
      *
@@ -103,17 +103,17 @@ class AgentStep implements WorkflowStepInterface
     {
         // Replace {variable} with values from input
         $task = $this->task;
-        
+
         foreach ($input as $key => $value) {
             // Only interpolate scalar values
             if (is_scalar($value) || is_null($value)) {
                 $task = str_replace('{' . $key . '}', (string) $value, $task);
             }
         }
-        
+
         return $task;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -121,7 +121,7 @@ class AgentStep implements WorkflowStepInterface
     {
         return $this->name;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -130,7 +130,7 @@ class AgentStep implements WorkflowStepInterface
         $this->name = $name;
         return $this;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -138,7 +138,7 @@ class AgentStep implements WorkflowStepInterface
     {
         return $this->description;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -147,7 +147,7 @@ class AgentStep implements WorkflowStepInterface
         $this->description = $description;
         return $this;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -155,7 +155,7 @@ class AgentStep implements WorkflowStepInterface
     {
         return $this->agent;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -164,7 +164,7 @@ class AgentStep implements WorkflowStepInterface
         $this->agent = $agent;
         return $this;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -172,7 +172,7 @@ class AgentStep implements WorkflowStepInterface
     {
         return $this->timeout;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -181,7 +181,7 @@ class AgentStep implements WorkflowStepInterface
         $this->timeout = $timeout;
         return $this;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -189,7 +189,7 @@ class AgentStep implements WorkflowStepInterface
     {
         return $this->required;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -198,7 +198,7 @@ class AgentStep implements WorkflowStepInterface
         $this->required = $required;
         return $this;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -206,7 +206,7 @@ class AgentStep implements WorkflowStepInterface
     {
         return $this->inputMapping;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -215,7 +215,7 @@ class AgentStep implements WorkflowStepInterface
         $this->inputMapping = $mapping;
         return $this;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -223,7 +223,7 @@ class AgentStep implements WorkflowStepInterface
     {
         return $this->outputMapping;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -232,7 +232,7 @@ class AgentStep implements WorkflowStepInterface
         $this->outputMapping = $mapping;
         return $this;
     }
-    
+
     /**
      * Get the task to execute.
      *
@@ -242,7 +242,7 @@ class AgentStep implements WorkflowStepInterface
     {
         return $this->task;
     }
-    
+
     /**
      * Set the task to execute.
      *
@@ -254,4 +254,4 @@ class AgentStep implements WorkflowStepInterface
         $this->task = $task;
         return $this;
     }
-} 
+}

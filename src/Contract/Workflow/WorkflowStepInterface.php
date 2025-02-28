@@ -22,14 +22,14 @@ interface WorkflowStepInterface
      * @return array<string, mixed> The result of this step
      */
     public function execute(array $input, array $stepsOutput = []): array;
-    
+
     /**
      * Get the name of this step.
      *
      * @return string The step name
      */
     public function getName(): string;
-    
+
     /**
      * Set the name of this step.
      *
@@ -37,14 +37,14 @@ interface WorkflowStepInterface
      * @return self
      */
     public function setName(string $name): self;
-    
+
     /**
      * Get the description of this step.
      *
      * @return string The step description
      */
     public function getDescription(): string;
-    
+
     /**
      * Set the description of this step.
      *
@@ -52,14 +52,14 @@ interface WorkflowStepInterface
      * @return self
      */
     public function setDescription(string $description): self;
-    
+
     /**
      * Get the agent assigned to this step.
      *
      * @return AgentInterface|null The agent, or null if none assigned
      */
     public function getAgent(): ?AgentInterface;
-    
+
     /**
      * Set the agent for this step.
      *
@@ -67,14 +67,14 @@ interface WorkflowStepInterface
      * @return self
      */
     public function setAgent(AgentInterface $agent): self;
-    
+
     /**
      * Get the maximum execution time for this step in seconds.
      *
      * @return int|null The timeout in seconds, or null for no timeout
      */
     public function getTimeout(): ?int;
-    
+
     /**
      * Set the maximum execution time for this step in seconds.
      *
@@ -82,14 +82,14 @@ interface WorkflowStepInterface
      * @return self
      */
     public function setTimeout(?int $timeout): self;
-    
+
     /**
      * Get whether this step is required for workflow completion.
      *
      * @return bool True if the step is required, false if optional
      */
     public function isRequired(): bool;
-    
+
     /**
      * Set whether this step is required for workflow completion.
      *
@@ -97,14 +97,14 @@ interface WorkflowStepInterface
      * @return self
      */
     public function setRequired(bool $required): self;
-    
+
     /**
      * Get the mapping of input data from workflow input to step input.
      *
      * @return array<string, string> Mapping of workflow input keys to step input keys
      */
     public function getInputMapping(): array;
-    
+
     /**
      * Set the mapping of input data from workflow input to step input.
      *
@@ -112,14 +112,14 @@ interface WorkflowStepInterface
      * @return self
      */
     public function setInputMapping(array $mapping): self;
-    
+
     /**
      * Get the mapping of output data from step output to workflow output.
      *
      * @return array<string, string> Mapping of step output keys to workflow output keys
      */
     public function getOutputMapping(): array;
-    
+
     /**
      * Set the mapping of output data from step output to workflow output.
      *
@@ -127,4 +127,4 @@ interface WorkflowStepInterface
      * @return self
      */
     public function setOutputMapping(array $mapping): self;
-} 
+}

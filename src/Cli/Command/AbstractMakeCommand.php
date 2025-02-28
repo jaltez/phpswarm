@@ -129,4 +129,4 @@ abstract class AbstractMakeCommand extends Command
 
         $this->filesystem->dumpFile($destination, $template);
     }
-} 
+}

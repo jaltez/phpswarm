@@ -8,7 +8,7 @@ use PhpSwarm\Contract\Agent\AgentInterface;
 
 /**
  * Interface for workflow engines in the PHPSwarm system.
- * 
+ *
  * A workflow represents a sequence of steps that can be executed
  * by one or more agents to achieve a complex goal.
  */
@@ -22,7 +22,7 @@ interface WorkflowInterface
      * @return self
      */
     public function addStep(string $stepId, WorkflowStepInterface $step): self;
-    
+
     /**
      * Add a dependency between steps.
      *
@@ -31,7 +31,7 @@ interface WorkflowInterface
      * @return self
      */
     public function addDependency(string $stepId, string $dependsOnStepId): self;
-    
+
     /**
      * Set multiple dependencies for a step.
      *
@@ -40,14 +40,14 @@ interface WorkflowInterface
      * @return self
      */
     public function setDependencies(string $stepId, array $dependsOnStepIds): self;
-    
+
     /**
      * Get all steps in the workflow.
      *
      * @return array<string, WorkflowStepInterface> The steps, keyed by step ID
      */
     public function getSteps(): array;
-    
+
     /**
      * Get a specific step by its ID.
      *
@@ -55,7 +55,7 @@ interface WorkflowInterface
      * @return WorkflowStepInterface|null The step, or null if not found
      */
     public function getStep(string $stepId): ?WorkflowStepInterface;
-    
+
     /**
      * Get the dependencies for a step.
      *
@@ -63,7 +63,7 @@ interface WorkflowInterface
      * @return array<string> The IDs of steps this step depends on
      */
     public function getDependencies(string $stepId): array;
-    
+
     /**
      * Execute the entire workflow.
      *
@@ -71,14 +71,14 @@ interface WorkflowInterface
      * @return WorkflowResultInterface The result of the workflow execution
      */
     public function execute(array $input = []): WorkflowResultInterface;
-    
+
     /**
      * Get the name of the workflow.
      *
      * @return string The workflow name
      */
     public function getName(): string;
-    
+
     /**
      * Set the name of the workflow.
      *
@@ -86,14 +86,14 @@ interface WorkflowInterface
      * @return self
      */
     public function setName(string $name): self;
-    
+
     /**
      * Get the description of the workflow.
      *
      * @return string The workflow description
      */
     public function getDescription(): string;
-    
+
     /**
      * Set the description of the workflow.
      *
@@ -101,7 +101,7 @@ interface WorkflowInterface
      * @return self
      */
     public function setDescription(string $description): self;
-    
+
     /**
      * Set the maximum number of parallel steps.
      *
@@ -109,11 +109,11 @@ interface WorkflowInterface
      * @return self
      */
     public function setMaxParallelSteps(int $maxParallelSteps): self;
-    
+
     /**
      * Get the maximum number of parallel steps.
      *
      * @return int The maximum number of steps to run in parallel
      */
     public function getMaxParallelSteps(): int;
-} 
+}

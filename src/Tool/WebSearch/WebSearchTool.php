@@ -18,22 +18,22 @@ class WebSearchTool extends BaseTool
      * @var Client HTTP client
      */
     private Client $client;
-    
+
     /**
      * @var string API key for the search service
      */
     private string $apiKey;
-    
+
     /**
      * @var string Search engine ID (for services like Google Custom Search)
      */
     private string $searchEngineId;
-    
+
     /**
      * @var string The search service to use (google, bing, etc.)
      */
     private string $service;
-    
+
     /**
      * Create a new WebSearchTool instance.
      *
@@ -45,7 +45,7 @@ class WebSearchTool extends BaseTool
             'web_search',
             'Search the web for information on a given query'
         );
-        
+
         $this->parametersSchema = [
             'query' => [
                 'type' => 'string',
@@ -59,25 +59,25 @@ class WebSearchTool extends BaseTool
                 'default' => 5,
             ],
         ];
-        
+
         $this->apiKey = $config['api_key'] ?? getenv('SEARCH_API_KEY');
         $this->searchEngineId = $config['search_engine_id'] ?? getenv('SEARCH_ENGINE_ID');
         $this->service = $config['service'] ?? 'google';
-        
+
         $this->client = new Client();
-        
+
         $this->addTag('web');
         $this->addTag('search');
         $this->setRequiresAuthentication(true);
     }
-    
+
     /**
      * {@inheritdoc}
      */
     public function run(array $parameters = []): mixed
     {
         $this->validateParameters($parameters);
-        
+
         if (empty($this->apiKey)) {
             throw new ToolExecutionException(
                 'Search API key is required. Set it in the configuration or as an environment variable SEARCH_API_KEY.',
@@ -85,10 +85,10 @@ class WebSearchTool extends BaseTool
                 $this->getName()
             );
         }
-        
+
         $query = $parameters['query'];
         $numResults = $parameters['num_results'] ?? 5;
-        
+
         try {
             return $this->performSearch($query, $numResults);
         } catch (GuzzleException $e) {
@@ -101,7 +101,7 @@ class WebSearchTool extends BaseTool
             );
         }
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -109,7 +109,7 @@ class WebSearchTool extends BaseTool
     {
         return !empty($this->apiKey);
     }
-    
+
     /**
      * Perform the search using the configured service.
      *
@@ -131,7 +131,7 @@ class WebSearchTool extends BaseTool
             ),
         };
     }
-    
+
     /**
      * Perform a search using Google Custom Search API.
      *
@@ -150,7 +150,7 @@ class WebSearchTool extends BaseTool
                 $this->getName()
             );
         }
-        
+
         $response = $this->client->get('https://www.googleapis.com/customsearch/v1', [
             'query' => [
                 'key' => $this->apiKey,
@@ -159,13 +159,13 @@ class WebSearchTool extends BaseTool
                 'num' => min($numResults, 10), // Google API limits to 10 results per page
             ],
         ]);
-        
+
         $data = json_decode($response->getBody()->getContents(), true);
-        
+
         if (!isset($data['items']) || !is_array($data['items'])) {
             return [];
         }
-        
+
         $results = [];
         foreach ($data['items'] as $item) {
             $results[] = [
@@ -173,15 +173,15 @@ class WebSearchTool extends BaseTool
                 'link' => $item['link'] ?? '',
                 'snippet' => $item['snippet'] ?? '',
             ];
-            
+
             if (count($results) >= $numResults) {
                 break;
             }
         }
-        
+
         return $results;
     }
-    
+
     /**
      * Perform a search using Bing Search API.
      *
@@ -201,13 +201,13 @@ class WebSearchTool extends BaseTool
                 'count' => min($numResults, 50), // Bing API allows up to 50 results
             ],
         ]);
-        
+
         $data = json_decode($response->getBody()->getContents(), true);
-        
+
         if (!isset($data['webPages']['value']) || !is_array($data['webPages']['value'])) {
             return [];
         }
-        
+
         $results = [];
         foreach ($data['webPages']['value'] as $item) {
             $results[] = [
@@ -215,12 +215,12 @@ class WebSearchTool extends BaseTool
                 'link' => $item['url'] ?? '',
                 'snippet' => $item['snippet'] ?? '',
             ];
-            
+
             if (count($results) >= $numResults) {
                 break;
             }
         }
-        
+
         return $results;
     }
-} 
+}

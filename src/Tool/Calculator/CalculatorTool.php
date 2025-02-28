@@ -21,7 +21,7 @@ class CalculatorTool extends BaseTool
             'calculator',
             'Performs basic arithmetic calculations (+, -, *, /, ^, sqrt, etc.)'
         );
-        
+
         $this->parametersSchema = [
             'expression' => [
                 'type' => 'string',
@@ -29,24 +29,24 @@ class CalculatorTool extends BaseTool
                 'required' => true,
             ],
         ];
-        
+
         $this->addTag('math');
         $this->addTag('calculation');
     }
-    
+
     /**
      * {@inheritdoc}
      */
     public function run(array $parameters = []): mixed
     {
         $this->validateParameters($parameters);
-        
+
         $expression = $parameters['expression'];
-        
+
         try {
             // Sanitize the input expression
             $sanitizedExpression = $this->sanitizeExpression($expression);
-            
+
             // Evaluate the expression
             return $this->evaluate($sanitizedExpression);
         } catch (\Throwable $e) {
@@ -59,7 +59,7 @@ class CalculatorTool extends BaseTool
             );
         }
     }
-    
+
     /**
      * Sanitize the expression to prevent code injection.
      *
@@ -71,7 +71,7 @@ class CalculatorTool extends BaseTool
     {
         // Remove whitespace
         $expression = trim($expression);
-        
+
         // Only allow safe characters
         if (!preg_match('/^[0-9+\-*\/\^\(\)\s\.,sqrt]+$/i', $expression)) {
             throw new ToolExecutionException(
@@ -80,10 +80,10 @@ class CalculatorTool extends BaseTool
                 $this->getName()
             );
         }
-        
+
         return $expression;
     }
-    
+
     /**
      * Safely evaluate the mathematical expression.
      *
@@ -95,10 +95,10 @@ class CalculatorTool extends BaseTool
     {
         // Replace sqrt with the PHP equivalent
         $expression = preg_replace('/sqrt\s*\(\s*([0-9\.]+)\s*\)/i', 'sqrt($1)', $expression);
-        
+
         // Replace ^ with ** for exponentiation
         $expression = str_replace('^', '**', $expression);
-        
+
         // Create a safe evaluation environment
         $mathFunctions = [
             'sqrt' => 'sqrt',
@@ -109,19 +109,19 @@ class CalculatorTool extends BaseTool
             'log' => 'log',
             'exp' => 'exp',
         ];
-        
+
         // Build a safe evaluation string
         $code = '';
         foreach ($mathFunctions as $alias => $function) {
             $code .= "function $alias(\$x) { return $function(\$x); }";
         }
-        
+
         $code .= "return $expression;";
-        
+
         // Evaluate the expression
         try {
             $result = eval($code);
-            
+
             if ($result === false) {
                 throw new ToolExecutionException(
                     'Error evaluating the expression',
@@ -129,7 +129,7 @@ class CalculatorTool extends BaseTool
                     $this->getName()
                 );
             }
-            
+
             return (float) $result;
         } catch (\ParseError $e) {
             throw new ToolExecutionException(
@@ -141,4 +141,4 @@ class CalculatorTool extends BaseTool
             );
         }
     }
-} 
+}

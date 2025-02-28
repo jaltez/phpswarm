@@ -12,20 +12,20 @@ use PhpSwarm\Console\Command\MakeMemoryCommand;
 use PhpSwarm\Console\Command\MakeLLMConnectorCommand;
 
 /**
- * PHPSwarm CLI Application
+ * PHPSwarm Console Application
  */
-class Application extends SymfonyApplication
+class ConsoleApplication extends SymfonyApplication
 {
     /**
      * Constructor
      */
     public function __construct()
     {
-        parent::__construct('PHPSwarm CLI', '1.0.0');
-        
+        parent::__construct('PHPSwarm Console', '1.0.0');
+
         $this->registerCommands();
     }
-    
+
     /**
      * Register all available commands
      */
@@ -37,4 +37,4 @@ class Application extends SymfonyApplication
         $this->add(new MakeMemoryCommand());
         $this->add(new MakeLLMConnectorCommand());
     }
-} 
+}

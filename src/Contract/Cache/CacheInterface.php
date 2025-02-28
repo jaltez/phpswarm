@@ -17,7 +17,7 @@ interface CacheInterface
      * @return mixed The cached value or default if not found
      */
     public function get(string $key, mixed $default = null): mixed;
-    
+
     /**
      * Set a value in the cache.
      *
@@ -27,7 +27,7 @@ interface CacheInterface
      * @return bool True on success, false on failure
      */
     public function set(string $key, mixed $value, ?int $ttl = null): bool;
-    
+
     /**
      * Check if a key exists in the cache.
      *
@@ -35,7 +35,7 @@ interface CacheInterface
      * @return bool True if the key exists, false otherwise
      */
     public function has(string $key): bool;
-    
+
     /**
      * Delete a value from the cache.
      *
@@ -43,14 +43,14 @@ interface CacheInterface
      * @return bool True if the key was deleted, false otherwise
      */
     public function delete(string $key): bool;
-    
+
     /**
      * Clear all values from the cache.
      *
      * @return bool True on success, false on failure
      */
     public function clear(): bool;
-    
+
     /**
      * Get multiple values from the cache.
      *
@@ -59,7 +59,7 @@ interface CacheInterface
      * @return array<string, mixed> Associative array of key => value pairs
      */
     public function getMultiple(array $keys, mixed $default = null): array;
-    
+
     /**
      * Set multiple values in the cache.
      *
@@ -68,7 +68,7 @@ interface CacheInterface
      * @return bool True on success, false on failure
      */
     public function setMultiple(array $values, ?int $ttl = null): bool;
-    
+
     /**
      * Delete multiple values from the cache.
      *
@@ -76,4 +76,4 @@ interface CacheInterface
      * @return bool True if all keys were deleted, false otherwise
      */
     public function deleteMultiple(array $keys): bool;
-} 
+}

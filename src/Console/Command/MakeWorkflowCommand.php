@@ -36,46 +36,46 @@ class MakeWorkflowCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-        
+
         $name = $input->getArgument('name');
         $directory = $input->getOption('directory');
         $description = $input->getOption('description');
         $stepsString = $input->getOption('steps');
-        
+
         // Ensure the name has the correct format
         $className = $this->formatClassName($name);
-        
+
         // Parse steps
         $steps = $this->parseSteps($stepsString);
-        
+
         // Create the directory if it doesn't exist
         if (!is_dir($directory)) {
             mkdir($directory, 0755, true);
         }
-        
+
         // Generate the file path
         $filePath = $directory . '/' . $className . '.php';
-        
+
         // Check if the file already exists
         if (file_exists($filePath)) {
             $io->error(sprintf('Workflow "%s" already exists at "%s"', $className, $filePath));
             return Command::FAILURE;
         }
-        
+
         // Generate the namespace based on the directory
         $namespace = $this->generateNamespace($directory);
-        
+
         // Generate the workflow class content
         $content = $this->generateWorkflowClass($namespace, $className, $description, $steps);
-        
+
         // Write the content to the file
         file_put_contents($filePath, $content);
-        
+
         $io->success(sprintf('Workflow "%s" created successfully at "%s"', $className, $filePath));
-        
+
         return Command::SUCCESS;
     }
-    
+
     /**
      * Format the class name to ensure it follows PHP conventions
      */
@@ -83,14 +83,14 @@ class MakeWorkflowCommand extends Command
     {
         // Remove "Workflow" suffix if present, we'll add it back later
         $name = preg_replace('/Workflow$/', '', $name);
-        
+
         // Convert to PascalCase
         $name = str_replace(' ', '', ucwords(str_replace(['_', '-'], ' ', $name)));
-        
+
         // Add "Workflow" suffix
         return $name . 'Workflow';
     }
-    
+
     /**
      * Generate the namespace based on the directory
      */
@@ -98,14 +98,14 @@ class MakeWorkflowCommand extends Command
     {
         // Convert directory path to namespace
         $namespace = str_replace('/', '\\', $directory);
-        
+
         // Remove src/ or src\ prefix
         $namespace = preg_replace('/^src[\/\\\\]/', '', $namespace);
-        
+
         // Add PhpSwarm prefix
         return 'PhpSwarm\\' . $namespace;
     }
-    
+
     /**
      * Parse the steps string into an array of step names
      */
@@ -114,20 +114,20 @@ class MakeWorkflowCommand extends Command
         if (empty($stepsString)) {
             return [];
         }
-        
+
         $steps = [];
         $stepList = explode(',', $stepsString);
-        
+
         foreach ($stepList as $step) {
             $step = trim($step);
             if (!empty($step)) {
                 $steps[] = $step;
             }
         }
-        
+
         return $steps;
     }
-    
+
     /**
      * Generate the workflow class content
      */
@@ -139,10 +139,10 @@ class MakeWorkflowCommand extends Command
     ): string {
         // Generate step definitions
         $stepDefinitions = $this->generateStepDefinitions($steps);
-        
+
         // Generate step registrations
         $stepRegistrations = $this->generateStepRegistrations($steps);
-        
+
         return <<<PHP
 <?php
 
@@ -249,7 +249,7 @@ class {$className} extends Workflow
 }
 PHP;
     }
-    
+
     /**
      * Get the workflow name from the class name
      */
@@ -257,11 +257,11 @@ PHP;
     {
         // Remove "Workflow" suffix
         $name = preg_replace('/Workflow$/', '', $className);
-        
+
         // Add spaces before capital letters and trim
         return trim(preg_replace('/(?<!^)[A-Z]/', ' $0', $name));
     }
-    
+
     /**
      * Generate step definitions
      */
@@ -270,13 +270,13 @@ PHP;
         if (empty($steps)) {
             $steps = ['Step1', 'Step2'];
         }
-        
+
         $definitions = '';
-        
+
         foreach ($steps as $index => $step) {
             $stepId = $this->formatStepId($step);
             $stepName = $this->formatStepName($step);
-            
+
             if ($index % 2 === 0) {
                 // Create an agent step
                 $definitions .= "        // Create agent step: {$stepName}\n";
@@ -309,15 +309,15 @@ PHP;
                 $definitions .= "            'Function to process {$stepName}'\n";
                 $definitions .= "        );\n";
             }
-            
+
             if ($index < count($steps) - 1) {
                 $definitions .= "        \n";
             }
         }
-        
+
         return $definitions;
     }
-    
+
     /**
      * Generate step registrations
      */
@@ -326,17 +326,17 @@ PHP;
         if (empty($steps)) {
             $steps = ['Step1', 'Step2'];
         }
-        
+
         $registrations = '';
-        
+
         foreach ($steps as $step) {
             $stepId = $this->formatStepId($step);
             $registrations .= "        \$this->addStep('{$stepId}', \${$stepId});\n";
         }
-        
+
         return $registrations;
     }
-    
+
     /**
      * Format a step name to a valid step ID
      */
@@ -344,10 +344,10 @@ PHP;
     {
         // Convert to camelCase
         $step = lcfirst(str_replace(' ', '', ucwords(str_replace(['_', '-'], ' ', $step))));
-        
+
         return $step;
     }
-    
+
     /**
      * Format a step name for display
      */
@@ -356,4 +356,4 @@ PHP;
         // Convert to Title Case with spaces
         return ucwords(str_replace(['_', '-'], ' ', $step));
     }
-} 
+}

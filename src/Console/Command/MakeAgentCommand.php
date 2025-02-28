@@ -37,44 +37,44 @@ class MakeAgentCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-        
+
         $name = $input->getArgument('name');
         $directory = $input->getOption('directory');
         $role = $input->getOption('role');
         $goal = $input->getOption('goal');
         $backstory = $input->getOption('backstory');
-        
+
         // Ensure the name has the correct format
         $className = $this->formatClassName($name);
-        
+
         // Create the directory if it doesn't exist
         if (!is_dir($directory)) {
             mkdir($directory, 0755, true);
         }
-        
+
         // Generate the file path
         $filePath = $directory . '/' . $className . '.php';
-        
+
         // Check if the file already exists
         if (file_exists($filePath)) {
             $io->error(sprintf('Agent "%s" already exists at "%s"', $className, $filePath));
             return Command::FAILURE;
         }
-        
+
         // Generate the namespace based on the directory
         $namespace = $this->generateNamespace($directory);
-        
+
         // Generate the agent class content
         $content = $this->generateAgentClass($namespace, $className, $role, $goal, $backstory);
-        
+
         // Write the content to the file
         file_put_contents($filePath, $content);
-        
+
         $io->success(sprintf('Agent "%s" created successfully at "%s"', $className, $filePath));
-        
+
         return Command::SUCCESS;
     }
-    
+
     /**
      * Format the class name to ensure it follows PHP conventions
      */
@@ -82,14 +82,14 @@ class MakeAgentCommand extends Command
     {
         // Remove "Agent" suffix if present, we'll add it back later
         $name = preg_replace('/Agent$/', '', $name);
-        
+
         // Convert to PascalCase
         $name = str_replace(' ', '', ucwords(str_replace(['_', '-'], ' ', $name)));
-        
+
         // Add "Agent" suffix
         return $name . 'Agent';
     }
-    
+
     /**
      * Generate the namespace based on the directory
      */
@@ -97,14 +97,14 @@ class MakeAgentCommand extends Command
     {
         // Convert directory path to namespace
         $namespace = str_replace('/', '\\', $directory);
-        
+
         // Remove src/ or src\ prefix
         $namespace = preg_replace('/^src[\/\\\\]/', '', $namespace);
-        
+
         // Add PhpSwarm prefix
         return 'PhpSwarm\\' . $namespace;
     }
-    
+
     /**
      * Generate the agent class content
      */
@@ -182,4 +182,4 @@ class {$className} extends Agent
 }
 PHP;
     }
-} 
+}

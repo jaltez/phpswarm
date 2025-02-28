@@ -18,15 +18,15 @@ class MySQLQueryTool extends BaseTool
      * @var PDO|null The database connection
      */
     private ?PDO $connection = null;
-    
+
     /**
      * @var array<string, mixed> The database configuration
      */
     private array $config;
-    
+
     /**
      * Create a new MySQLQueryTool instance.
-     * 
+     *
      * @param array<string, mixed> $config The MySQL database configuration
      */
     public function __construct(array $config = [])
@@ -35,7 +35,7 @@ class MySQLQueryTool extends BaseTool
             'mysql_query',
             'Execute MySQL queries to retrieve or modify information in a MySQL database'
         );
-        
+
         $this->parametersSchema = [
             'query' => [
                 'type' => 'string',
@@ -56,7 +56,7 @@ class MySQLQueryTool extends BaseTool
                 'enum' => ['all', 'one', 'column', 'value'],
             ],
         ];
-        
+
         $this->config = array_merge([
             'driver' => 'mysql',
             'host' => 'localhost',
@@ -71,38 +71,38 @@ class MySQLQueryTool extends BaseTool
                 PDO::ATTR_EMULATE_PREPARES => false,
             ],
         ], $config);
-        
+
         $this->addTag('database');
         $this->addTag('sql');
         $this->addTag('mysql');
         $this->addTag('query');
         $this->setRequiresAuthentication(true);
     }
-    
+
     /**
      * {@inheritdoc}
      */
     public function run(array $parameters = []): mixed
     {
         $this->validateParameters($parameters);
-        
+
         $query = $parameters['query'];
         $params = $parameters['params'] ?? [];
         $fetchMode = $parameters['fetch_mode'] ?? 'all';
-        
+
         try {
             // Connect to the database if not already connected
             if (!$this->connection) {
                 $this->connect();
             }
-            
+
             // Check if the query is a SELECT query
             $isSelect = $this->isSelectQuery($query);
-            
+
             // Prepare and execute the query
             $statement = $this->connection->prepare($query);
             $statement->execute($params);
-            
+
             // Return appropriate result based on query type
             if ($isSelect) {
                 return match ($fetchMode) {
@@ -136,7 +136,7 @@ class MySQLQueryTool extends BaseTool
             );
         }
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -144,11 +144,13 @@ class MySQLQueryTool extends BaseTool
     {
         try {
             // Check if the required credentials are provided
-            if (empty($this->config['database']) || 
-                empty($this->config['username'])) {
+            if (
+                empty($this->config['database']) ||
+                empty($this->config['username'])
+            ) {
                 return false;
             }
-            
+
             // Try to connect to the database
             $this->connect();
             return true;
@@ -156,17 +158,17 @@ class MySQLQueryTool extends BaseTool
             return false;
         }
     }
-    
+
     /**
      * Connect to the database.
-     * 
+     *
      * @return void
      * @throws PDOException If connection fails
      */
     private function connect(): void
     {
         $dsn = $this->buildDsn();
-        
+
         $this->connection = new PDO(
             $dsn,
             $this->config['username'],
@@ -174,16 +176,16 @@ class MySQLQueryTool extends BaseTool
             $this->config['options'] ?? []
         );
     }
-    
+
     /**
      * Build the DSN string for the PDO connection based on the driver.
-     * 
+     *
      * @return string
      */
     private function buildDsn(): string
     {
         $driver = $this->config['driver'];
-        
+
         return match ($driver) {
             'mysql' => sprintf(
                 'mysql:host=%s;port=%s;dbname=%s;charset=%s',
@@ -199,35 +201,35 @@ class MySQLQueryTool extends BaseTool
             ),
         };
     }
-    
+
     /**
      * Check if a query is a SELECT query.
-     * 
+     *
      * @param string $query The SQL query
      * @return bool
      */
     private function isSelectQuery(string $query): bool
     {
         $query = trim($query);
-        return stripos($query, 'SELECT') === 0 || 
-               stripos($query, 'SHOW') === 0 || 
-               stripos($query, 'DESCRIBE') === 0 || 
+        return stripos($query, 'SELECT') === 0 ||
+               stripos($query, 'SHOW') === 0 ||
+               stripos($query, 'DESCRIBE') === 0 ||
                stripos($query, 'EXPLAIN') === 0;
     }
-    
+
     /**
      * Close the database connection.
-     * 
+     *
      * @return void
      */
     public function disconnect(): void
     {
         $this->connection = null;
     }
-    
+
     /**
      * Set the database configuration.
-     * 
+     *
      * @param array<string, mixed> $config The database configuration
      * @return self
      */
@@ -236,4 +238,4 @@ class MySQLQueryTool extends BaseTool
         $this->config = array_merge($this->config, $config);
         return $this;
     }
-} 
+}

@@ -15,52 +15,52 @@ class AnthropicConnectorResponse implements LLMResponseInterface
      * @var array<string, mixed> The raw response data
      */
     private array $rawResponse;
-    
+
     /**
      * @var string The content of the response
      */
     private string $content = '';
-    
+
     /**
      * @var array<array<string, mixed>> The tool calls in the response
      */
     private array $toolCalls = [];
-    
+
     /**
      * @var bool Whether the response has tool calls
      */
     private bool $hasToolCalls = false;
-    
+
     /**
      * @var int|null The number of prompt tokens used
      */
     private ?int $promptTokens = null;
-    
+
     /**
      * @var int|null The number of completion tokens used
      */
     private ?int $completionTokens = null;
-    
+
     /**
      * @var int|null The total number of tokens used
      */
     private ?int $totalTokens = null;
-    
+
     /**
      * @var string The model used for this response
      */
     private string $model = '';
-    
+
     /**
      * @var array<string, mixed> Additional metadata about the response
      */
     private array $metadata = [];
-    
+
     /**
      * @var string|null The finish reason provided by the LLM
      */
     private ?string $finishReason = null;
-    
+
     /**
      * Create a new AnthropicConnectorResponse instance
      *
@@ -71,7 +71,7 @@ class AnthropicConnectorResponse implements LLMResponseInterface
         $this->rawResponse = $rawResponse;
         $this->parseResponse();
     }
-    
+
     /**
      * Parse the raw response data
      */
@@ -79,24 +79,24 @@ class AnthropicConnectorResponse implements LLMResponseInterface
     {
         // Extract the model
         $this->model = $this->rawResponse['model'] ?? '';
-        
+
         // Extract the content
         if (isset($this->rawResponse['choices'][0]['message']['content'])) {
             $this->content = $this->rawResponse['choices'][0]['message']['content'] ?? '';
         } elseif (isset($this->rawResponse['choices'][0]['delta']['content'])) {
             $this->content = $this->rawResponse['choices'][0]['delta']['content'] ?? '';
         }
-        
+
         // Extract token usage
         if (isset($this->rawResponse['usage'])) {
             $this->promptTokens = $this->rawResponse['usage']['prompt_tokens'] ?? null;
             $this->completionTokens = $this->rawResponse['usage']['completion_tokens'] ?? null;
             $this->totalTokens = $this->rawResponse['usage']['total_tokens'] ?? null;
         }
-        
+
         // Extract finish reason
         $this->finishReason = $this->rawResponse['choices'][0]['finish_reason'] ?? null;
-        
+
         // Extract tool calls
         if (isset($this->rawResponse['choices'][0]['message']['tool_calls'])) {
             $this->toolCalls = $this->rawResponse['choices'][0]['message']['tool_calls'];
@@ -106,7 +106,7 @@ class AnthropicConnectorResponse implements LLMResponseInterface
             $this->hasToolCalls = !empty($this->toolCalls);
         }
     }
-    
+
     /**
      * Get the main text/content of the response
      *
@@ -116,7 +116,7 @@ class AnthropicConnectorResponse implements LLMResponseInterface
     {
         return $this->content;
     }
-    
+
     /**
      * Get the raw response data from the LLM provider
      *
@@ -126,7 +126,7 @@ class AnthropicConnectorResponse implements LLMResponseInterface
     {
         return $this->rawResponse;
     }
-    
+
     /**
      * Get the tool calls from the response, if any
      *
@@ -136,7 +136,7 @@ class AnthropicConnectorResponse implements LLMResponseInterface
     {
         return $this->toolCalls;
     }
-    
+
     /**
      * Get whether the response contains tool calls
      *
@@ -146,7 +146,7 @@ class AnthropicConnectorResponse implements LLMResponseInterface
     {
         return $this->hasToolCalls;
     }
-    
+
     /**
      * Get the number of prompt tokens used
      *
@@ -156,7 +156,7 @@ class AnthropicConnectorResponse implements LLMResponseInterface
     {
         return $this->promptTokens;
     }
-    
+
     /**
      * Get the number of completion tokens used
      *
@@ -166,7 +166,7 @@ class AnthropicConnectorResponse implements LLMResponseInterface
     {
         return $this->completionTokens;
     }
-    
+
     /**
      * Get the total number of tokens used
      *
@@ -176,7 +176,7 @@ class AnthropicConnectorResponse implements LLMResponseInterface
     {
         return $this->totalTokens;
     }
-    
+
     /**
      * Get the model used for this response
      *
@@ -186,7 +186,7 @@ class AnthropicConnectorResponse implements LLMResponseInterface
     {
         return $this->model;
     }
-    
+
     /**
      * Get any additional metadata about the response
      *
@@ -196,7 +196,7 @@ class AnthropicConnectorResponse implements LLMResponseInterface
     {
         return $this->metadata;
     }
-    
+
     /**
      * Get the finish reason provided by the LLM
      *
@@ -206,7 +206,7 @@ class AnthropicConnectorResponse implements LLMResponseInterface
     {
         return $this->finishReason;
     }
-    
+
     /**
      * Add metadata to the response
      *

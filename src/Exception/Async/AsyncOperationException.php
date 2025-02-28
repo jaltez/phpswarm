@@ -11,4 +11,4 @@ use PhpSwarm\Exception\PhpSwarmException;
  */
 class AsyncOperationException extends PhpSwarmException
 {
-} 
+}

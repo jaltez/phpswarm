@@ -36,22 +36,22 @@ class MakeToolCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-        
+
         $name = $input->getArgument('name');
         $directory = $input->getOption('directory');
         $description = $input->getOption('description');
         $parametersString = $input->getOption('parameters');
-        
+
         // Ensure the name has the correct format
         $className = $this->formatClassName($name);
-        
+
         // Parse parameters
         $parameters = $this->parseParameters($parametersString);
-        
+
         // Create the directory if it doesn't exist
         if (!is_dir($directory)) {
             mkdir($directory, 0755, true);
-            
+
             // If it's a new tool type, create a subdirectory
             if (strpos($directory, 'src/Tool/') === 0 && substr_count($directory, '/') === 2) {
                 $subDir = basename($directory);
@@ -59,30 +59,30 @@ class MakeToolCommand extends Command
                 mkdir($directory, 0755, true);
             }
         }
-        
+
         // Generate the file path
         $filePath = $directory . '/' . $className . '.php';
-        
+
         // Check if the file already exists
         if (file_exists($filePath)) {
             $io->error(sprintf('Tool "%s" already exists at "%s"', $className, $filePath));
             return Command::FAILURE;
         }
-        
+
         // Generate the namespace based on the directory
         $namespace = $this->generateNamespace($directory);
-        
+
         // Generate the tool class content
         $content = $this->generateToolClass($namespace, $className, $description, $parameters);
-        
+
         // Write the content to the file
         file_put_contents($filePath, $content);
-        
+
         $io->success(sprintf('Tool "%s" created successfully at "%s"', $className, $filePath));
-        
+
         return Command::SUCCESS;
     }
-    
+
     /**
      * Format the class name to ensure it follows PHP conventions
      */
@@ -90,14 +90,14 @@ class MakeToolCommand extends Command
     {
         // Remove "Tool" suffix if present, we'll add it back later
         $name = preg_replace('/Tool$/', '', $name);
-        
+
         // Convert to PascalCase
         $name = str_replace(' ', '', ucwords(str_replace(['_', '-'], ' ', $name)));
-        
+
         // Add "Tool" suffix
         return $name . 'Tool';
     }
-    
+
     /**
      * Generate the namespace based on the directory
      */
@@ -105,14 +105,14 @@ class MakeToolCommand extends Command
     {
         // Convert directory path to namespace
         $namespace = str_replace('/', '\\', $directory);
-        
+
         // Remove src/ or src\ prefix
         $namespace = preg_replace('/^src[\/\\\\]/', '', $namespace);
-        
+
         // Add PhpSwarm prefix
         return 'PhpSwarm\\' . $namespace;
     }
-    
+
     /**
      * Parse the parameters string into an array of parameter definitions
      */
@@ -121,17 +121,17 @@ class MakeToolCommand extends Command
         if (empty($parametersString)) {
             return [];
         }
-        
+
         $parameters = [];
         $paramList = explode(',', $parametersString);
-        
+
         foreach ($paramList as $param) {
             $parts = explode(':', trim($param));
-            
+
             $name = $parts[0] ?? '';
             $type = $parts[1] ?? 'string';
             $description = $parts[2] ?? 'Parameter description';
-            
+
             if (!empty($name)) {
                 $parameters[] = [
                     'name' => $name,
@@ -140,10 +140,10 @@ class MakeToolCommand extends Command
                 ];
             }
         }
-        
+
         return $parameters;
     }
-    
+
     /**
      * Generate the tool class content
      */
@@ -155,13 +155,13 @@ class MakeToolCommand extends Command
     ): string {
         // Generate parameters schema
         $parametersSchema = $this->generateParametersSchema($parameters);
-        
+
         // Generate parameter validation
         $paramValidation = $this->generateParameterValidation($parameters);
-        
+
         // Generate parameter properties
         $paramProperties = $this->generateParameterProperties($parameters);
-        
+
         return <<<PHP
 <?php
 
@@ -239,7 +239,7 @@ class {$className} extends BaseTool
 }
 PHP;
     }
-    
+
     /**
      * Get the tool name from the class name
      */
@@ -247,11 +247,11 @@ PHP;
     {
         // Remove "Tool" suffix
         $name = preg_replace('/Tool$/', '', $className);
-        
+
         // Add spaces before capital letters and trim
         return trim(preg_replace('/(?<!^)[A-Z]/', ' $0', $name));
     }
-    
+
     /**
      * Generate the parameters schema code
      */
@@ -260,9 +260,9 @@ PHP;
         if (empty($parameters)) {
             return '[]';
         }
-        
+
         $schema = "[\n";
-        
+
         foreach ($parameters as $param) {
             $schema .= "            '{$param['name']}' => [\n";
             $schema .= "                'type' => '{$param['type']}',\n";
@@ -270,12 +270,12 @@ PHP;
             $schema .= "                'required' => true,\n";
             $schema .= "            ],\n";
         }
-        
+
         $schema .= "        ]";
-        
+
         return $schema;
     }
-    
+
     /**
      * Generate parameter validation code
      */
@@ -284,17 +284,17 @@ PHP;
         if (empty($parameters)) {
             return '';
         }
-        
+
         $validation = '';
-        
+
         foreach ($parameters as $param) {
             $name = $param['name'];
             $validation .= "        \${$name} = \$parameters['{$name}'] ?? null;\n";
         }
-        
+
         return $validation;
     }
-    
+
     /**
      * Generate parameter properties
      */
@@ -303,14 +303,14 @@ PHP;
         if (empty($parameters)) {
             return '';
         }
-        
+
         $properties = "\n";
-        
+
         foreach ($parameters as $param) {
             $name = $param['name'];
             $type = $param['type'];
             $description = $param['description'];
-            
+
             $properties .= "    /**\n";
             $properties .= "     * Helper method to get the {$name} parameter\n";
             $properties .= "     *\n";
@@ -322,7 +322,7 @@ PHP;
             $properties .= "        return \$parameters['{$name}'] ?? null;\n";
             $properties .= "    }\n\n";
         }
-        
+
         return $properties;
     }
-} 
+}

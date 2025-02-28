@@ -18,12 +18,12 @@ class RedisCache implements CacheInterface
      * @var Redis The Redis client
      */
     private Redis $redis;
-    
+
     /**
      * @var string The key prefix
      */
     private string $prefix;
-    
+
     /**
      * Create a new RedisCache instance.
      *
@@ -40,23 +40,23 @@ class RedisCache implements CacheInterface
             'auth' => null,
             'prefix' => 'phpswarm:cache:',
         ];
-        
+
         $config = array_merge($defaults, $config);
         $this->prefix = $config['prefix'];
-        
+
         try {
             $this->redis = new Redis();
-            
+
             if (!$this->redis->connect($config['host'], $config['port'], $config['timeout'])) {
                 throw new CacheException('Failed to connect to Redis server');
             }
-            
+
             if ($config['auth'] !== null) {
                 if (!$this->redis->auth($config['auth'])) {
                     throw new CacheException('Failed to authenticate with Redis server');
                 }
             }
-            
+
             if ($config['database'] !== 0) {
                 if (!$this->redis->select($config['database'])) {
                     throw new CacheException('Failed to select Redis database');
@@ -66,7 +66,7 @@ class RedisCache implements CacheInterface
             throw new CacheException('Redis error: ' . $e->getMessage(), 0, $e);
         }
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -74,17 +74,17 @@ class RedisCache implements CacheInterface
     {
         try {
             $value = $this->redis->get($this->prefix . $key);
-            
+
             if ($value === false) {
                 return $default;
             }
-            
+
             return unserialize($value);
         } catch (RedisException $e) {
             return $default;
         }
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -93,17 +93,17 @@ class RedisCache implements CacheInterface
         try {
             $serialized = serialize($value);
             $prefixedKey = $this->prefix . $key;
-            
+
             if ($ttl === null) {
                 return $this->redis->set($prefixedKey, $serialized);
             }
-            
+
             return $this->redis->setex($prefixedKey, $ttl, $serialized);
         } catch (RedisException $e) {
             return false;
         }
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -115,7 +115,7 @@ class RedisCache implements CacheInterface
             return false;
         }
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -127,7 +127,7 @@ class RedisCache implements CacheInterface
             return false;
         }
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -135,17 +135,17 @@ class RedisCache implements CacheInterface
     {
         try {
             $keys = $this->redis->keys($this->prefix . '*');
-            
+
             if (empty($keys)) {
                 return true;
             }
-            
+
             return $this->redis->del($keys) > 0;
         } catch (RedisException $e) {
             return false;
         }
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -155,10 +155,10 @@ class RedisCache implements CacheInterface
             $prefixedKeys = array_map(function ($key) {
                 return $this->prefix . $key;
             }, $keys);
-            
+
             $values = $this->redis->mGet($prefixedKeys);
             $result = [];
-            
+
             foreach ($keys as $i => $key) {
                 if ($values[$i] === false) {
                     $result[$key] = $default;
@@ -166,19 +166,19 @@ class RedisCache implements CacheInterface
                     $result[$key] = unserialize($values[$i]);
                 }
             }
-            
+
             return $result;
         } catch (RedisException $e) {
             $result = [];
-            
+
             foreach ($keys as $key) {
                 $result[$key] = $default;
             }
-            
+
             return $result;
         }
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -186,25 +186,25 @@ class RedisCache implements CacheInterface
     {
         try {
             $pipe = $this->redis->multi(Redis::PIPELINE);
-            
+
             foreach ($values as $key => $value) {
                 $serialized = serialize($value);
                 $prefixedKey = $this->prefix . $key;
-                
+
                 if ($ttl === null) {
                     $pipe->set($prefixedKey, $serialized);
                 } else {
                     $pipe->setex($prefixedKey, $ttl, $serialized);
                 }
             }
-            
+
             $pipe->exec();
             return true;
         } catch (RedisException $e) {
             return false;
         }
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -213,18 +213,18 @@ class RedisCache implements CacheInterface
         if (empty($keys)) {
             return true;
         }
-        
+
         try {
             $prefixedKeys = array_map(function ($key) {
                 return $this->prefix . $key;
             }, $keys);
-            
+
             return $this->redis->del($prefixedKeys) > 0;
         } catch (RedisException $e) {
             return false;
         }
     }
-    
+
     /**
      * Get the underlying Redis instance.
      *
@@ -234,4 +234,4 @@ class RedisCache implements CacheInterface
     {
         return $this->redis;
     }
-} 
+}

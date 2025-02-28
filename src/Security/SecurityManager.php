@@ -17,37 +17,37 @@ class SecurityManager implements SecurityManagerInterface
      * @var array<string, mixed> Security settings
      */
     private array $settings;
-    
+
     /**
      * @var LoggerInterface|null Logger for security events
      */
     private ?LoggerInterface $logger;
-    
+
     /**
      * @var array<string> Allowed paths for file operations
      */
     private array $allowedPaths = [];
-    
+
     /**
      * @var array<string> Disallowed paths for file operations
      */
     private array $disallowedPaths = [];
-    
+
     /**
      * @var array<string> Allowed command prefixes
      */
     private array $allowedCommands = [];
-    
+
     /**
      * @var array<string> Blocked command patterns
      */
     private array $blockedCommands = [];
-    
+
     /**
      * @var array<string> Prompt injection patterns to detect
      */
     private array $injectionPatterns = [];
-    
+
     /**
      * Create a new SecurityManager instance.
      *
@@ -70,19 +70,19 @@ class SecurityManager implements SecurityManagerInterface
             'blocked_commands' => ['rm', 'mv', 'cp', 'chmod', 'chown', 'wget', 'curl', 'ssh', 'sudo', 'su'],
             'secure_mode' => 'standard', // 'permissive', 'standard', 'strict'
         ];
-        
+
         $this->settings = array_merge($defaultSettings, $settings);
         $this->logger = $logger;
-        
+
         $this->allowedPaths = $this->settings['allowed_paths'];
         $this->disallowedPaths = $this->settings['disallowed_paths'];
         $this->allowedCommands = $this->settings['allowed_commands'];
         $this->blockedCommands = $this->settings['blocked_commands'];
-        
+
         // Initialize prompt injection patterns
         $this->initializeInjectionPatterns();
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -91,7 +91,7 @@ class SecurityManager implements SecurityManagerInterface
         if (!$this->settings['validate_inputs']) {
             return true;
         }
-        
+
         // Check input length
         if (strlen($input) > $this->settings['max_input_length']) {
             $this->logSecurityEvent(
@@ -105,17 +105,18 @@ class SecurityManager implements SecurityManagerInterface
             );
             return false;
         }
-        
+
         // Check for potentially malicious patterns
         $maliciousPatterns = [
             '/(\<\?php|\<\?)/i', // PHP code
             '/(\<script)/i', // JavaScript
             '/(\$_GET|\$_POST|\$_REQUEST|\$_SERVER|\$_FILES)/i', // PHP globals
-            '/(`|exec\s*\(|system\s*\(|passthru\s*\(|shell_exec\s*\(|popen\s*\(|proc_open\s*\(|pcntl_exec\s*\()/i', // Command execution
+            '/(`|exec\s*\(|system\s*\(|passthru\s*\(|shell_exec\s*\(|' .
+            'popen\s*\(|proc_open\s*\(|pcntl_exec\s*\()/i', // Command execution
             '/(file\s*\(|file_get_contents\s*\(|file_put_contents\s*\(|fopen\s*\(|readfile\s*\()/i', // File operations
             '/(SELECT|INSERT|UPDATE|DELETE|DROP|ALTER|CREATE)\s+.*\s+(FROM|INTO|TABLE|DATABASE)/i', // SQL queries
         ];
-        
+
         foreach ($maliciousPatterns as $pattern) {
             if (preg_match($pattern, $input)) {
                 $this->logSecurityEvent(
@@ -130,10 +131,10 @@ class SecurityManager implements SecurityManagerInterface
                 return false;
             }
         }
-        
+
         return true;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -142,9 +143,9 @@ class SecurityManager implements SecurityManagerInterface
         if (!$this->settings['check_path_safety']) {
             return true;
         }
-        
+
         $realPath = realpath($path) ?: $path;
-        
+
         // Check for directory traversal attempts
         if (strpos($path, '../') !== false || strpos($path, '..\\') !== false) {
             $this->logSecurityEvent(
@@ -158,18 +159,18 @@ class SecurityManager implements SecurityManagerInterface
             );
             return false;
         }
-        
+
         // Check if the path is in the allowed list
         if (!empty($this->allowedPaths)) {
             $allowed = false;
-            
+
             foreach ($this->allowedPaths as $allowedPath) {
                 if (strpos($realPath, $allowedPath) === 0) {
                     $allowed = true;
                     break;
                 }
             }
-            
+
             if (!$allowed) {
                 $this->logSecurityEvent(
                     'Path not in allowed list',
@@ -184,7 +185,7 @@ class SecurityManager implements SecurityManagerInterface
                 return false;
             }
         }
-        
+
         // Check if the path is in the disallowed list
         foreach ($this->disallowedPaths as $disallowedPath) {
             if (strpos($realPath, $disallowedPath) === 0) {
@@ -202,7 +203,7 @@ class SecurityManager implements SecurityManagerInterface
                 return false;
             }
         }
-        
+
         // Additional checks based on operation
         switch ($operation) {
             case 'read':
@@ -220,7 +221,7 @@ class SecurityManager implements SecurityManagerInterface
                     return false;
                 }
                 break;
-                
+
             case 'write':
                 // Check parent directory for writability
                 $parentDir = dirname($realPath);
@@ -239,7 +240,7 @@ class SecurityManager implements SecurityManagerInterface
                     return false;
                 }
                 break;
-                
+
             case 'execute':
                 if (file_exists($realPath) && !is_executable($realPath)) {
                     $this->logSecurityEvent(
@@ -256,10 +257,10 @@ class SecurityManager implements SecurityManagerInterface
                 }
                 break;
         }
-        
+
         return true;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -268,23 +269,23 @@ class SecurityManager implements SecurityManagerInterface
         if (!$this->settings['sanitize_inputs']) {
             return $input;
         }
-        
+
         // Remove PHP tags
         $sanitized = preg_replace('/\<\?php|\<\?|\?\>/i', '', $input);
-        
+
         // Remove HTML/JS tags in appropriate contexts
         if (isset($context['context']) && $context['context'] === 'html') {
             $sanitized = htmlspecialchars($sanitized, ENT_QUOTES, 'UTF-8');
         }
-        
+
         // Escape shell commands in appropriate contexts
         if (isset($context['context']) && $context['context'] === 'shell') {
             $sanitized = escapeshellarg($sanitized);
         }
-        
+
         return $sanitized;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -293,9 +294,9 @@ class SecurityManager implements SecurityManagerInterface
         if (!$this->settings['check_prompt_injection']) {
             return true;
         }
-        
+
         $lowerPrompt = strtolower($prompt);
-        
+
         foreach ($this->injectionPatterns as $pattern) {
             if (strpos($lowerPrompt, $pattern) !== false) {
                 $this->logSecurityEvent(
@@ -310,10 +311,10 @@ class SecurityManager implements SecurityManagerInterface
                 return false;
             }
         }
-        
+
         return true;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -322,11 +323,11 @@ class SecurityManager implements SecurityManagerInterface
         if (!$this->settings['check_command_safety']) {
             return true;
         }
-        
+
         // Extract the command without arguments
         $commandParts = explode(' ', trim($command));
         $baseCommand = trim($commandParts[0]);
-        
+
         // Check if the command is in the blocked list
         foreach ($this->blockedCommands as $blockedCmd) {
             if ($baseCommand === $blockedCmd) {
@@ -342,18 +343,18 @@ class SecurityManager implements SecurityManagerInterface
                 return false;
             }
         }
-        
+
         // If we have an allowed list, check if the command is permitted
         if (!empty($this->allowedCommands)) {
             $allowed = false;
-            
+
             foreach ($this->allowedCommands as $allowedCmd) {
                 if ($baseCommand === $allowedCmd) {
                     $allowed = true;
                     break;
                 }
             }
-            
+
             if (!$allowed) {
                 $this->logSecurityEvent(
                     'Command not in allowed list',
@@ -367,7 +368,7 @@ class SecurityManager implements SecurityManagerInterface
                 return false;
             }
         }
-        
+
         // Check for dangerous patterns (pipe to another command, etc.)
         $dangerousPatterns = [
             '/\s*\|\s*/', // Pipe
@@ -380,7 +381,7 @@ class SecurityManager implements SecurityManagerInterface
             '/`.*`/', // Backticks
             '/\$\(.*\)/', // Command substitution
         ];
-        
+
         foreach ($dangerousPatterns as $pattern) {
             if (preg_match($pattern, $command)) {
                 $this->logSecurityEvent(
@@ -395,10 +396,10 @@ class SecurityManager implements SecurityManagerInterface
                 return false;
             }
         }
-        
+
         return true;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -409,26 +410,26 @@ class SecurityManager implements SecurityManagerInterface
                 case 'info':
                     $this->logger->info("[SECURITY] $event", $context);
                     break;
-                    
+
                 case 'warning':
                     $this->logger->warning("[SECURITY] $event", $context);
                     break;
-                    
+
                 case 'error':
                     $this->logger->error("[SECURITY] $event", $context);
                     break;
-                    
+
                 case 'critical':
                     $this->logger->critical("[SECURITY] $event", $context);
                     break;
-                    
+
                 default:
                     $this->logger->info("[SECURITY] $event", $context);
                     break;
             }
         }
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -436,32 +437,32 @@ class SecurityManager implements SecurityManagerInterface
     {
         return $this->settings;
     }
-    
+
     /**
      * {@inheritdoc}
      */
     public function configure(array $settings): void
     {
         $this->settings = array_merge($this->settings, $settings);
-        
+
         // Update internal properties
         if (isset($settings['allowed_paths'])) {
             $this->allowedPaths = $settings['allowed_paths'];
         }
-        
+
         if (isset($settings['disallowed_paths'])) {
             $this->disallowedPaths = $settings['disallowed_paths'];
         }
-        
+
         if (isset($settings['allowed_commands'])) {
             $this->allowedCommands = $settings['allowed_commands'];
         }
-        
+
         if (isset($settings['blocked_commands'])) {
             $this->blockedCommands = $settings['blocked_commands'];
         }
     }
-    
+
     /**
      * Add a safe path for file operations.
      *
@@ -473,7 +474,7 @@ class SecurityManager implements SecurityManagerInterface
         $this->allowedPaths[] = $path;
         return $this;
     }
-    
+
     /**
      * Add a path to the disallowed list.
      *
@@ -485,7 +486,7 @@ class SecurityManager implements SecurityManagerInterface
         $this->disallowedPaths[] = $path;
         return $this;
     }
-    
+
     /**
      * Add a command to the allowed list.
      *
@@ -497,7 +498,7 @@ class SecurityManager implements SecurityManagerInterface
         $this->allowedCommands[] = $command;
         return $this;
     }
-    
+
     /**
      * Add a command to the blocked list.
      *
@@ -509,7 +510,7 @@ class SecurityManager implements SecurityManagerInterface
         $this->blockedCommands[] = $command;
         return $this;
     }
-    
+
     /**
      * Initialize prompt injection detection patterns.
      *
@@ -525,7 +526,7 @@ class SecurityManager implements SecurityManagerInterface
             'override previous instructions',
             'forget previous instructions',
             'new instructions',
-            
+
             // Role change attempts
             'you are now',
             'from now on you are',
@@ -533,7 +534,7 @@ class SecurityManager implements SecurityManagerInterface
             'act as if you are',
             'pretend you are',
             'switch to being',
-            
+
             // Confidential information extraction
             'reveal your system prompt',
             'show me your instructions',
@@ -542,7 +543,7 @@ class SecurityManager implements SecurityManagerInterface
             'what is your system prompt',
             'display system prompt',
             'output system prompt',
-            
+
             // Jailbreak patterns
             'dev mode',
             'developer mode',
@@ -552,7 +553,7 @@ class SecurityManager implements SecurityManagerInterface
             'administrator mode',
             'sudo mode',
             'root access',
-            
+
             // Instruction evasion
             'do not follow',
             'don\'t follow',
@@ -562,7 +563,7 @@ class SecurityManager implements SecurityManagerInterface
             'ignore ethical guidelines',
             'ignore restrictions',
             'break free from constraints',
-            
+
             // Specific attacks
             'dll',
             'token',
@@ -573,4 +574,4 @@ class SecurityManager implements SecurityManagerInterface
             'passwords',
         ];
     }
-} 
+}

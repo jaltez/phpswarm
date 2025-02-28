@@ -56,4 +56,4 @@ class Application extends SymfonyApplication
     {
         return $this->config;
     }
-} 
+}

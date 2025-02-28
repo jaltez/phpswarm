@@ -18,52 +18,52 @@ class AgentBuilder
      * @var string|null Agent name
      */
     private ?string $name = null;
-    
+
     /**
      * @var string|null Agent role
      */
     private ?string $role = null;
-    
+
     /**
      * @var string|null Agent goal
      */
     private ?string $goal = null;
-    
+
     /**
      * @var string Agent backstory
      */
     private string $backstory = '';
-    
+
     /**
      * @var LLMInterface|null The LLM for this agent
      */
     private ?LLMInterface $llm = null;
-    
+
     /**
      * @var MemoryInterface|null The memory system
      */
     private ?MemoryInterface $memory = null;
-    
+
     /**
      * @var array<ToolInterface> Available tools
      */
     private array $tools = [];
-    
+
     /**
      * @var bool Whether to enable verbose logging
      */
     private bool $verboseLogging = false;
-    
+
     /**
      * @var bool Whether to allow the agent to delegate tasks
      */
     private bool $allowDelegation = false;
-    
+
     /**
      * @var int Maximum iterations to run before stopping
      */
     private int $maxIterations = 10;
-    
+
     /**
      * Set the agent name.
      *
@@ -75,7 +75,7 @@ class AgentBuilder
         $this->name = $name;
         return $this;
     }
-    
+
     /**
      * Set the agent role.
      *
@@ -87,7 +87,7 @@ class AgentBuilder
         $this->role = $role;
         return $this;
     }
-    
+
     /**
      * Set the agent goal.
      *
@@ -99,7 +99,7 @@ class AgentBuilder
         $this->goal = $goal;
         return $this;
     }
-    
+
     /**
      * Set the agent backstory.
      *
@@ -111,7 +111,7 @@ class AgentBuilder
         $this->backstory = $backstory;
         return $this;
     }
-    
+
     /**
      * Set the LLM to be used by the agent.
      *
@@ -123,7 +123,7 @@ class AgentBuilder
         $this->llm = $llm;
         return $this;
     }
-    
+
     /**
      * Set the memory system to be used by the agent.
      *
@@ -135,7 +135,7 @@ class AgentBuilder
         $this->memory = $memory;
         return $this;
     }
-    
+
     /**
      * Add a tool to the agent.
      *
@@ -147,7 +147,7 @@ class AgentBuilder
         $this->tools[] = $tool;
         return $this;
     }
-    
+
     /**
      * Add multiple tools to the agent.
      *
@@ -161,7 +161,7 @@ class AgentBuilder
         }
         return $this;
     }
-    
+
     /**
      * Enable or disable verbose logging for the agent.
      *
@@ -173,7 +173,7 @@ class AgentBuilder
         $this->verboseLogging = $verbose;
         return $this;
     }
-    
+
     /**
      * Set whether the agent can delegate tasks to other agents.
      *
@@ -185,7 +185,7 @@ class AgentBuilder
         $this->allowDelegation = $allowDelegation;
         return $this;
     }
-    
+
     /**
      * Set the maximum number of iterations for the agent to run.
      *
@@ -197,7 +197,7 @@ class AgentBuilder
         $this->maxIterations = $maxIterations;
         return $this;
     }
-    
+
     /**
      * Build the Agent instance.
      *
@@ -209,15 +209,15 @@ class AgentBuilder
         if (!$this->name) {
             throw new \InvalidArgumentException('Agent name is required');
         }
-        
+
         if (!$this->role) {
             throw new \InvalidArgumentException('Agent role is required');
         }
-        
+
         if (!$this->goal) {
             throw new \InvalidArgumentException('Agent goal is required');
         }
-        
+
         $agent = new Agent(
             $this->name,
             $this->role,
@@ -226,21 +226,21 @@ class AgentBuilder
             $this->llm,
             $this->memory ?? new ArrayMemory()
         );
-        
+
         foreach ($this->tools as $tool) {
             $agent->addTool($tool);
         }
-        
+
         if ($this->verboseLogging) {
             $agent->withVerboseLogging();
         }
-        
+
         if ($this->allowDelegation) {
             $agent->allowDelegation();
         }
-        
+
         $agent->withMaxIterations($this->maxIterations);
-        
+
         return $agent;
     }
-} 
+}

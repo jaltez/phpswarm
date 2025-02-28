@@ -17,7 +17,7 @@ interface SecurityManagerInterface
      * @return bool True if the input is safe, false otherwise
      */
     public function validateInput(string $input, array $context = []): bool;
-    
+
     /**
      * Check if a path is safe to access.
      *
@@ -27,7 +27,7 @@ interface SecurityManagerInterface
      * @return bool True if the path is safe, false otherwise
      */
     public function isPathSafe(string $path, string $operation, array $context = []): bool;
-    
+
     /**
      * Sanitize input to remove potential security issues.
      *
@@ -36,7 +36,7 @@ interface SecurityManagerInterface
      * @return string The sanitized input
      */
     public function sanitizeInput(string $input, array $context = []): string;
-    
+
     /**
      * Check for potential prompt injection in an LLM input.
      *
@@ -45,7 +45,7 @@ interface SecurityManagerInterface
      * @return bool True if the prompt is safe, false otherwise
      */
     public function detectPromptInjection(string $prompt, array $context = []): bool;
-    
+
     /**
      * Check if a command is safe to execute.
      *
@@ -54,7 +54,7 @@ interface SecurityManagerInterface
      * @return bool True if the command is safe, false otherwise
      */
     public function isCommandSafe(string $command, array $context = []): bool;
-    
+
     /**
      * Log a security event.
      *
@@ -64,14 +64,14 @@ interface SecurityManagerInterface
      * @return void
      */
     public function logSecurityEvent(string $event, string $level, array $context = []): void;
-    
+
     /**
      * Get the current security settings.
      *
      * @return array<string, mixed> The security settings
      */
     public function getSecuritySettings(): array;
-    
+
     /**
      * Configure security settings.
      *
@@ -79,4 +79,4 @@ interface SecurityManagerInterface
      * @return void
      */
     public function configure(array $settings): void;
-} 
+}

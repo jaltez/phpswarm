@@ -18,22 +18,22 @@ class WeatherTool extends BaseTool
      * @var Client HTTP client
      */
     private Client $client;
-    
+
     /**
      * @var string API key for the weather service
      */
     private string $apiKey;
-    
+
     /**
      * @var string Base URL for the weather API
      */
     private string $baseUrl;
-    
+
     /**
      * @var string The weather service to use
      */
     private string $service;
-    
+
     /**
      * Create a new WeatherTool instance.
      *
@@ -45,7 +45,7 @@ class WeatherTool extends BaseTool
             'weather',
             'Get current weather or forecast for a location'
         );
-        
+
         $this->parametersSchema = [
             'location' => [
                 'type' => 'string',
@@ -66,31 +66,31 @@ class WeatherTool extends BaseTool
                 'default' => 5,
             ],
         ];
-        
+
         $this->apiKey = $config['api_key'] ?? getenv('WEATHER_API_KEY');
         $this->service = $config['service'] ?? 'openweathermap';
-        
+
         // Set the base URL based on the service
         $this->baseUrl = match ($this->service) {
             'openweathermap' => 'https://api.openweathermap.org/data/2.5',
             'weatherapi' => 'https://api.weatherapi.com/v1',
             default => $config['base_url'] ?? '',
         };
-        
+
         $this->client = new Client();
-        
+
         $this->addTag('weather');
         $this->addTag('location');
         $this->setRequiresAuthentication(true);
     }
-    
+
     /**
      * {@inheritdoc}
      */
     public function run(array $parameters = []): mixed
     {
         $this->validateParameters($parameters);
-        
+
         if (empty($this->apiKey)) {
             throw new ToolExecutionException(
                 'Weather API key is required. Set it in the configuration or as an environment variable WEATHER_API_KEY.',
@@ -98,11 +98,11 @@ class WeatherTool extends BaseTool
                 $this->getName()
             );
         }
-        
+
         $location = $parameters['location'];
         $type = $parameters['type'] ?? 'current';
         $days = $parameters['days'] ?? 5;
-        
+
         try {
             return match ($this->service) {
                 'openweathermap' => $this->fetchFromOpenWeatherMap($location, $type, $days),
@@ -123,7 +123,7 @@ class WeatherTool extends BaseTool
             );
         }
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -131,7 +131,7 @@ class WeatherTool extends BaseTool
     {
         return !empty($this->apiKey) && !empty($this->baseUrl);
     }
-    
+
     /**
      * Fetch weather information from OpenWeatherMap API.
      *
@@ -149,13 +149,13 @@ class WeatherTool extends BaseTool
             'appid' => $this->apiKey,
             'units' => 'metric', // Use metric units by default
         ];
-        
+
         $response = $this->client->get("{$this->baseUrl}/{$endpoint}", [
             'query' => $params,
         ]);
-        
+
         $data = json_decode($response->getBody()->getContents(), true);
-        
+
         // Process and format the response based on the type
         if ($type === 'current') {
             return $this->formatOpenWeatherMapCurrent($data);
@@ -163,7 +163,7 @@ class WeatherTool extends BaseTool
             return $this->formatOpenWeatherMapForecast($data, $days);
         }
     }
-    
+
     /**
      * Format current weather data from OpenWeatherMap.
      *
@@ -204,7 +204,7 @@ class WeatherTool extends BaseTool
             ],
         ];
     }
-    
+
     /**
      * Format forecast data from OpenWeatherMap.
      *
@@ -225,14 +225,14 @@ class WeatherTool extends BaseTool
             ],
             'forecast' => [],
         ];
-        
+
         // OpenWeatherMap's free tier provides forecast in 3-hour intervals
         // We'll aggregate these into daily forecasts
         $dailyForecasts = [];
-        
+
         foreach ($data['list'] as $item) {
             $date = date('Y-m-d', $item['dt']);
-            
+
             if (!isset($dailyForecasts[$date])) {
                 $dailyForecasts[$date] = [
                     'date' => $date,
@@ -249,19 +249,19 @@ class WeatherTool extends BaseTool
                 $dailyForecasts[$date]['conditions'][] = $item['weather'][0]['description'];
             }
         }
-        
+
         // Limit to the requested number of days
         $count = 0;
         foreach ($dailyForecasts as $day) {
             if ($count >= $days) {
                 break;
             }
-            
+
             // Get most common condition for the day
             $conditions = array_count_values($day['conditions']);
             arsort($conditions);
             $mainCondition = key($conditions);
-            
+
             $forecast['forecast'][] = [
                 'date' => $day['date'],
                 'temperature' => [
@@ -274,13 +274,13 @@ class WeatherTool extends BaseTool
                 'wind_speed' => $day['wind_speed'],
                 'pressure' => $day['pressure'],
             ];
-            
+
             $count++;
         }
-        
+
         return $forecast;
     }
-    
+
     /**
      * Fetch weather information from WeatherAPI.com.
      *
@@ -298,13 +298,13 @@ class WeatherTool extends BaseTool
             'key' => $this->apiKey,
             'days' => $type === 'forecast' ? $days : 1,
         ];
-        
+
         $response = $this->client->get("{$this->baseUrl}/{$endpoint}", [
             'query' => $params,
         ]);
-        
+
         $data = json_decode($response->getBody()->getContents(), true);
-        
+
         // Process and format the response based on the type
         if ($type === 'current') {
             return $this->formatWeatherApiCurrent($data);
@@ -312,7 +312,7 @@ class WeatherTool extends BaseTool
             return $this->formatWeatherApiForecast($data);
         }
     }
-    
+
     /**
      * Format current weather data from WeatherAPI.com.
      *
@@ -353,7 +353,7 @@ class WeatherTool extends BaseTool
             ],
         ];
     }
-    
+
     /**
      * Format forecast data from WeatherAPI.com.
      *
@@ -373,7 +373,7 @@ class WeatherTool extends BaseTool
             ],
             'forecast' => [],
         ];
-        
+
         if (isset($data['forecast']['forecastday']) && is_array($data['forecast']['forecastday'])) {
             foreach ($data['forecast']['forecastday'] as $day) {
                 $forecast['forecast'][] = [
@@ -390,7 +390,7 @@ class WeatherTool extends BaseTool
                 ];
             }
         }
-        
+
         return $forecast;
     }
-} 
+}

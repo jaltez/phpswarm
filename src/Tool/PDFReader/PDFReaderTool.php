@@ -16,10 +16,10 @@ class PDFReaderTool extends BaseTool
      * @var string The path to the pdftotext binary
      */
     private string $pdftotextPath;
-    
+
     /**
      * Create a new PDFReaderTool instance.
-     * 
+     *
      * @param string|null $pdftotextPath The path to the pdftotext binary (optional)
      */
     public function __construct(?string $pdftotextPath = null)
@@ -28,7 +28,7 @@ class PDFReaderTool extends BaseTool
             'pdf_reader',
             'Extract text content from a PDF document for analysis or processing'
         );
-        
+
         $this->parametersSchema = [
             'file_path' => [
                 'type' => 'string',
@@ -49,26 +49,26 @@ class PDFReaderTool extends BaseTool
                 'enum' => ['text', 'json'],
             ],
         ];
-        
+
         // Try to find the pdftotext binary if not provided
         $this->pdftotextPath = $pdftotextPath ?? $this->findPdfToTextBinary();
-        
+
         $this->addTag('pdf');
         $this->addTag('document');
         $this->addTag('reader');
     }
-    
+
     /**
      * {@inheritdoc}
      */
     public function run(array $parameters = []): mixed
     {
         $this->validateParameters($parameters);
-        
+
         $filePath = $parameters['file_path'];
         $page = $parameters['page'] ?? 0;
         $format = $parameters['format'] ?? 'text';
-        
+
         // Validate the file exists and is accessible
         if (!file_exists($filePath)) {
             throw new ToolExecutionException(
@@ -77,7 +77,7 @@ class PDFReaderTool extends BaseTool
                 $this->getName()
             );
         }
-        
+
         if (!is_readable($filePath)) {
             throw new ToolExecutionException(
                 "PDF file is not readable: {$filePath}",
@@ -85,7 +85,7 @@ class PDFReaderTool extends BaseTool
                 $this->getName()
             );
         }
-        
+
         try {
             // Check if we need to use external tools or PHP libraries
             if ($this->isExternalToolAvailable()) {
@@ -93,7 +93,7 @@ class PDFReaderTool extends BaseTool
             } else {
                 $content = $this->extractTextUsingPhp($filePath, $page);
             }
-            
+
             // Format the output based on the requested format
             return match ($format) {
                 'json' => $this->formatContentAsJson($content, $page),
@@ -109,7 +109,7 @@ class PDFReaderTool extends BaseTool
             );
         }
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -118,20 +118,20 @@ class PDFReaderTool extends BaseTool
         // Check if either external tools or PHP libraries are available
         return $this->isExternalToolAvailable() || class_exists('Smalot\PdfParser\Parser');
     }
-    
+
     /**
      * Check if the external pdftotext tool is available.
-     * 
+     *
      * @return bool
      */
     private function isExternalToolAvailable(): bool
     {
         return !empty($this->pdftotextPath) && file_exists($this->pdftotextPath) && is_executable($this->pdftotextPath);
     }
-    
+
     /**
      * Try to find the pdftotext binary on the system.
-     * 
+     *
      * @return string
      */
     private function findPdfToTextBinary(): string
@@ -144,17 +144,17 @@ class PDFReaderTool extends BaseTool
             'C:\\Program Files\\poppler\\bin\\pdftotext.exe',
             'C:\\Program Files (x86)\\poppler\\bin\\pdftotext.exe',
         ];
-        
+
         foreach ($commonPaths as $path) {
             if (file_exists($path) && is_executable($path)) {
                 return $path;
             }
         }
-        
+
         // Try to find it in PATH
         $output = [];
         $returnVar = -1;
-        
+
         if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
             // Windows
             exec('where pdftotext 2>nul', $output, $returnVar);
@@ -162,17 +162,17 @@ class PDFReaderTool extends BaseTool
             // Unix/Linux/MacOS
             exec('which pdftotext 2>/dev/null', $output, $returnVar);
         }
-        
+
         if ($returnVar === 0 && !empty($output[0])) {
             return $output[0];
         }
-        
+
         return '';
     }
-    
+
     /**
      * Extract text from a PDF using the external pdftotext tool.
-     * 
+     *
      * @param string $filePath The path to the PDF file
      * @param int $page The specific page to extract (0 for all pages)
      * @return string The extracted text
@@ -183,14 +183,14 @@ class PDFReaderTool extends BaseTool
         $command = escapeshellcmd($this->pdftotextPath);
         $escapedFilePath = escapeshellarg($filePath);
         $pageOption = $page > 0 ? "-f {$page} -l {$page}" : '';
-        
+
         $outputFile = tempnam(sys_get_temp_dir(), 'pdf_');
         $escapedOutputFile = escapeshellarg($outputFile);
-        
+
         $cmd = "{$command} {$pageOption} -layout {$escapedFilePath} {$escapedOutputFile} 2>&1";
-        
+
         exec($cmd, $output, $returnVar);
-        
+
         if ($returnVar !== 0) {
             @unlink($outputFile);
             throw new ToolExecutionException(
@@ -199,10 +199,10 @@ class PDFReaderTool extends BaseTool
                 $this->getName()
             );
         }
-        
+
         $content = file_get_contents($outputFile);
         @unlink($outputFile);
-        
+
         if ($content === false) {
             throw new ToolExecutionException(
                 "Failed to read extracted text file",
@@ -210,13 +210,13 @@ class PDFReaderTool extends BaseTool
                 $this->getName()
             );
         }
-        
+
         return $content;
     }
-    
+
     /**
      * Extract text from a PDF using PHP libraries.
-     * 
+     *
      * @param string $filePath The path to the PDF file
      * @param int $page The specific page to extract (0 for all pages)
      * @return string The extracted text
@@ -232,15 +232,15 @@ class PDFReaderTool extends BaseTool
                 $this->getName()
             );
         }
-        
+
         // Use the PDF Parser library
         $parser = new \Smalot\PdfParser\Parser();
         $pdf = $parser->parseFile($filePath);
-        
+
         if ($page > 0) {
             // Extract text from a specific page
             $pages = $pdf->getPages();
-            
+
             if (!isset($pages[$page - 1])) {
                 throw new ToolExecutionException(
                     "Page {$page} not found in the PDF document",
@@ -248,17 +248,17 @@ class PDFReaderTool extends BaseTool
                     $this->getName()
                 );
             }
-            
+
             return $pages[$page - 1]->getText();
         } else {
             // Extract text from all pages
             return $pdf->getText();
         }
     }
-    
+
     /**
      * Format the extracted content as JSON with metadata.
-     * 
+     *
      * @param string $content The extracted text content
      * @param int $page The specific page that was extracted
      * @return array<string, mixed> The formatted content
@@ -269,10 +269,10 @@ class PDFReaderTool extends BaseTool
         $lines = explode("\n", $content);
         $paragraphs = [];
         $currentParagraph = '';
-        
+
         foreach ($lines as $line) {
             $trimmedLine = trim($line);
-            
+
             if (empty($trimmedLine)) {
                 if (!empty($currentParagraph)) {
                     $paragraphs[] = trim($currentParagraph);
@@ -282,16 +282,16 @@ class PDFReaderTool extends BaseTool
                 $currentParagraph .= ' ' . $trimmedLine;
             }
         }
-        
+
         // Add the last paragraph if not empty
         if (!empty($currentParagraph)) {
             $paragraphs[] = trim($currentParagraph);
         }
-        
+
         // Count words and characters
         $wordCount = str_word_count($content);
         $charCount = strlen($content);
-        
+
         return [
             'content' => $content,
             'page' => $page > 0 ? $page : 'all',
@@ -302,10 +302,10 @@ class PDFReaderTool extends BaseTool
             'char_count' => $charCount,
         ];
     }
-    
+
     /**
      * Set the path to the pdftotext binary.
-     * 
+     *
      * @param string $path The path to the pdftotext binary
      * @return self
      */
@@ -314,4 +314,4 @@ class PDFReaderTool extends BaseTool
         $this->pdftotextPath = $path;
         return $this;
     }
-} 
+}
