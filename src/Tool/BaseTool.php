@@ -103,7 +103,7 @@ abstract class BaseTool implements ToolInterface
      * @param string $tag The tag to add
      * @return self
      */
-    protected function addTag(string $tag): self
+    public function addTag(string $tag): self
     {
         if (!in_array($tag, $this->tags, true)) {
             $this->tags[] = $tag;
