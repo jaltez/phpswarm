@@ -113,20 +113,145 @@ class Agent implements AgentInterface
         }
 
         $startTime = microtime(true);
+        $trace = [];
 
-        // Placeholder for actual agent logic
-        $response = new AgentResponse(
-            $task,
-            "This is a placeholder response. The agent '{$this->name}' would process task: $task",
+        // Build the system prompt based on agent configuration
+        $systemPrompt = "You are {$this->name}, a {$this->role}.\n";
+        $systemPrompt .= "Your goal is: {$this->goal}\n";
+        
+        if (!empty($this->backstory)) {
+            $systemPrompt .= "Backstory: {$this->backstory}\n";
+        }
+        
+        if (!empty($this->tools)) {
+            $systemPrompt .= "\nYou have the following tools available:\n";
+            foreach ($this->tools as $tool) {
+                $systemPrompt .= "- " . $tool->getName() . ": " . $tool->getDescription() . "\n";
+            }
+        }
+
+        // Prepare the messages
+        $messages = [
             [
-                'task' => $task,
-                'context' => $context,
-                'agent' => $this->name,
+                'role' => 'system',
+                'content' => $systemPrompt
             ],
-            microtime(true) - $startTime
-        );
+            [
+                'role' => 'user',
+                'content' => $task
+            ]
+        ];
 
-        return $response;
+        // Add context if needed
+        if (isset($context['messages']) && is_array($context['messages'])) {
+            $messages = array_merge($messages, $context['messages']);
+        }
+
+        // Handle streaming if requested
+        if (isset($context['stream']) && $context['stream'] === true && $this->llm->supportsStreaming()) {
+            $finalContent = '';
+            
+            try {
+                $this->llm->stream(
+                    $messages, 
+                    function($chunk) use (&$finalContent, $context) {
+                        // Add to the final content
+                        if (isset($chunk['message']['content'])) {
+                            $finalContent .= $chunk['message']['content'];
+                        } elseif (isset($chunk['response'])) {
+                            $finalContent .= $chunk['response'];
+                        }
+                        
+                        // Call the stream callback if provided
+                        if (isset($context['streamCallback']) && is_callable($context['streamCallback'])) {
+                            $context['streamCallback']($chunk);
+                        }
+                    },
+                    $context
+                );
+                
+                $trace[] = [
+                    'type' => 'stream',
+                    'messages' => $messages,
+                    'final_content' => $finalContent
+                ];
+                
+                // Create the response
+                $response = new AgentResponse(
+                    $task,
+                    $finalContent,
+                    $trace,
+                    microtime(true) - $startTime,
+                    true,
+                    null
+                );
+                
+                return $response;
+            } catch (\Throwable $e) {
+                if ($this->verboseLogging) {
+                    error_log("Error during streaming: " . $e->getMessage());
+                }
+                
+                return new AgentResponse(
+                    $task,
+                    "An error occurred: " . $e->getMessage(),
+                    $trace,
+                    microtime(true) - $startTime,
+                    false,
+                    $e->getMessage()
+                );
+            }
+        } else {
+            // Use regular chat completion
+            try {
+                $llmResponse = $this->llm->chat($messages, $context);
+                
+                $trace[] = [
+                    'type' => 'chat',
+                    'messages' => $messages,
+                    'response' => $llmResponse->getRawResponse()
+                ];
+                
+                // Create token usage information
+                $tokenUsage = [];
+                if ($llmResponse->getPromptTokens() !== null) {
+                    $tokenUsage['prompt_tokens'] = $llmResponse->getPromptTokens();
+                }
+                if ($llmResponse->getCompletionTokens() !== null) {
+                    $tokenUsage['completion_tokens'] = $llmResponse->getCompletionTokens();
+                }
+                if ($llmResponse->getTotalTokens() !== null) {
+                    $tokenUsage['total_tokens'] = $llmResponse->getTotalTokens();
+                }
+                
+                // Create the response
+                $response = new AgentResponse(
+                    $task,
+                    $llmResponse->getContent(),
+                    $trace,
+                    microtime(true) - $startTime,
+                    true,
+                    null,
+                    $tokenUsage,
+                    $llmResponse->getMetadata()
+                );
+                
+                return $response;
+            } catch (\Throwable $e) {
+                if ($this->verboseLogging) {
+                    error_log("Error during chat completion: " . $e->getMessage());
+                }
+                
+                return new AgentResponse(
+                    $task,
+                    "An error occurred: " . $e->getMessage(),
+                    $trace,
+                    microtime(true) - $startTime,
+                    false,
+                    $e->getMessage()
+                );
+            }
+        }
     }
 
     /**
