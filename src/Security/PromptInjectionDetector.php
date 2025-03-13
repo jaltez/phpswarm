@@ -17,21 +17,6 @@ class PromptInjectionDetector
     private array $patterns = [];
 
     /**
-     * @var LoggerInterface|null Optional logger
-     */
-    private ?LoggerInterface $logger;
-
-    /**
-     * @var bool Whether to use fuzzy matching
-     */
-    private bool $useFuzzyMatching;
-
-    /**
-     * @var int Similarity threshold for fuzzy matching (0-100)
-     */
-    private int $fuzzyThreshold;
-
-    /**
      * Create a new prompt injection detector.
      *
      * @param array<string>|null $customPatterns Additional patterns to check
@@ -41,14 +26,10 @@ class PromptInjectionDetector
      */
     public function __construct(
         ?array $customPatterns = null,
-        ?LoggerInterface $logger = null,
-        bool $useFuzzyMatching = false,
-        int $fuzzyThreshold = 80
+        private readonly ?LoggerInterface $logger = null,
+        private readonly bool $useFuzzyMatching = false,
+        private readonly int $fuzzyThreshold = 80
     ) {
-        $this->logger = $logger;
-        $this->useFuzzyMatching = $useFuzzyMatching;
-        $this->fuzzyThreshold = $fuzzyThreshold;
-
         // Initialize with default patterns
         $this->initializePatterns();
 
@@ -73,7 +54,7 @@ class PromptInjectionDetector
         // First check for exact matches
         foreach ($this->patterns as $category => $categoryPatterns) {
             foreach ($categoryPatterns as $pattern) {
-                if (strpos($lowerPrompt, strtolower($pattern)) !== false) {
+                if (str_contains($lowerPrompt, strtolower((string) $pattern))) {
                     $matches[] = [
                         'pattern' => $pattern,
                         'category' => $category,
@@ -84,7 +65,7 @@ class PromptInjectionDetector
         }
 
         // If fuzzy matching is enabled and no exact matches were found
-        if ($this->useFuzzyMatching && empty($matches)) {
+        if ($this->useFuzzyMatching && $matches === []) {
             $fuzzyMatches = $this->performFuzzyMatching($prompt);
             foreach ($fuzzyMatches as $match) {
                 $matches[] = $match;
@@ -92,7 +73,7 @@ class PromptInjectionDetector
         }
 
         // Log the result if a logger is available
-        if (!empty($matches) && $this->logger) {
+        if ($matches !== [] && $this->logger) {
             $this->logger->warning(
                 'Potential prompt injection detected',
                 [
@@ -104,7 +85,7 @@ class PromptInjectionDetector
         }
 
         return [
-            'safe' => empty($matches),
+            'safe' => $matches === [],
             'matches' => $matches,
         ];
     }
@@ -126,7 +107,6 @@ class PromptInjectionDetector
      * Add additional patterns to check.
      *
      * @param array<string>|array<string, array<string>> $patterns Patterns to add
-     * @return self
      */
     public function addPatterns(array $patterns): self
     {
@@ -179,11 +159,11 @@ class PromptInjectionDetector
         foreach ($this->patterns as $category => $categoryPatterns) {
             foreach ($categoryPatterns as $pattern) {
                 // Skip patterns that are too short for reliable fuzzy matching
-                if (strlen($pattern) < 5) {
+                if (strlen((string) $pattern) < 5) {
                     continue;
                 }
 
-                $patternWords = preg_split('/\s+/', strtolower($pattern));
+                $patternWords = preg_split('/\s+/', strtolower((string) $pattern));
 
                 // Look for pattern words in a sliding window
                 $windowSize = count($patternWords);
@@ -230,7 +210,7 @@ class PromptInjectionDetector
         }
 
         // If one of the strings is empty, return 0
-        if (empty($string1) || empty($string2)) {
+        if ($string1 === '' || $string1 === '0' || ($string2 === '' || $string2 === '0')) {
             return 0;
         }
 
@@ -244,8 +224,6 @@ class PromptInjectionDetector
 
     /**
      * Initialize the default injection patterns.
-     *
-     * @return void
      */
     private function initializePatterns(): void
     {

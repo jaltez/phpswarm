@@ -17,22 +17,22 @@ class WebSearchTool extends BaseTool
     /**
      * @var Client HTTP client
      */
-    private Client $client;
+    private readonly Client $client;
 
     /**
      * @var string API key for the search service
      */
-    private string $apiKey;
+    private readonly string $apiKey;
 
     /**
      * @var string Search engine ID (for services like Google Custom Search)
      */
-    private string $searchEngineId;
+    private readonly string $searchEngineId;
 
     /**
      * @var string The search service to use (google, bing, etc.)
      */
-    private string $service;
+    private readonly string $service;
 
     /**
      * Create a new WebSearchTool instance.
@@ -74,11 +74,12 @@ class WebSearchTool extends BaseTool
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function run(array $parameters = []): mixed
     {
         $this->validateParameters($parameters);
 
-        if (empty($this->apiKey)) {
+        if ($this->apiKey === '' || $this->apiKey === '0') {
             throw new ToolExecutionException(
                 'Search API key is required. Set it in the configuration or as an environment variable SEARCH_API_KEY.',
                 $parameters,
@@ -105,9 +106,10 @@ class WebSearchTool extends BaseTool
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function isAvailable(): bool
     {
-        return !empty($this->apiKey);
+        return $this->apiKey !== '' && $this->apiKey !== '0';
     }
 
     /**
@@ -143,7 +145,7 @@ class WebSearchTool extends BaseTool
      */
     private function googleSearch(string $query, int $numResults): array
     {
-        if (empty($this->searchEngineId)) {
+        if ($this->searchEngineId === '' || $this->searchEngineId === '0') {
             throw new ToolExecutionException(
                 'Google Custom Search requires a search engine ID. Set it in the configuration or as an environment variable SEARCH_ENGINE_ID.',
                 ['query' => $query, 'num_results' => $numResults],

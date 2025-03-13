@@ -13,16 +13,6 @@ use PhpSwarm\Exception\Tool\ToolExecutionException;
 abstract class BaseTool implements ToolInterface
 {
     /**
-     * @var string The name of the tool
-     */
-    protected string $name;
-
-    /**
-     * @var string The description of the tool
-     */
-    protected string $description;
-
-    /**
      * @var array<string, array<string, mixed>> The parameters schema
      */
     protected array $parametersSchema = [];
@@ -43,15 +33,14 @@ abstract class BaseTool implements ToolInterface
      * @param string $name The name of the tool
      * @param string $description The description of the tool
      */
-    public function __construct(string $name, string $description)
+    public function __construct(protected string $name, protected string $description)
     {
-        $this->name = $name;
-        $this->description = $description;
     }
 
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getName(): string
     {
         return $this->name;
@@ -60,6 +49,7 @@ abstract class BaseTool implements ToolInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getDescription(): string
     {
         return $this->description;
@@ -68,6 +58,7 @@ abstract class BaseTool implements ToolInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getParametersSchema(): array
     {
         return $this->parametersSchema;
@@ -76,6 +67,7 @@ abstract class BaseTool implements ToolInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getTags(): array
     {
         return $this->tags;
@@ -84,6 +76,7 @@ abstract class BaseTool implements ToolInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function isAvailable(): bool
     {
         return true;
@@ -92,6 +85,7 @@ abstract class BaseTool implements ToolInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function requiresAuthentication(): bool
     {
         return false;
@@ -101,8 +95,8 @@ abstract class BaseTool implements ToolInterface
      * Add a tag to the tool.
      *
      * @param string $tag The tag to add
-     * @return self
      */
+    #[\Override]
     public function addTag(string $tag): self
     {
         if (!in_array($tag, $this->tags, true)) {
@@ -116,7 +110,6 @@ abstract class BaseTool implements ToolInterface
      * Validate the parameters against the schema.
      *
      * @param array<string, mixed> $parameters The parameters to validate
-     * @return void
      * @throws ToolExecutionException If validation fails
      */
     protected function validateParameters(array $parameters): void
@@ -173,9 +166,6 @@ abstract class BaseTool implements ToolInterface
 
     /**
      * Set whether the tool requires authentication.
-     *
-     * @param bool $requiresAuth
-     * @return self
      */
     public function setRequiresAuthentication(bool $requiresAuth): self
     {

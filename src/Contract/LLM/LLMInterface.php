@@ -36,7 +36,6 @@ interface LLMInterface
      * @param array<array<string, string>> $messages The messages to send
      * @param callable $callback The callback to handle each chunk
      * @param array<string, mixed> $options Additional options for the request
-     * @return void
      */
     public function stream(array $messages, callable $callback, array $options = []): void;
 
@@ -50,36 +49,26 @@ interface LLMInterface
 
     /**
      * Get the default model name used by this connector.
-     *
-     * @return string
      */
     public function getDefaultModel(): string;
 
     /**
      * Get the name of the provider (e.g., "OpenAI", "Anthropic").
-     *
-     * @return string
      */
     public function getProviderName(): string;
 
     /**
      * Get whether this connector supports function calling.
-     *
-     * @return bool
      */
     public function supportsFunctionCalling(): bool;
 
     /**
      * Get whether this connector supports streaming.
-     *
-     * @return bool
      */
     public function supportsStreaming(): bool;
 
     /**
      * Get the maximum context length supported by the default model.
-     *
-     * @return int
      */
     public function getMaxContextLength(): int;
 }

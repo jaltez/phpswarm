@@ -26,7 +26,7 @@ class PhpSwarmFactory
     /**
      * @var PhpSwarmConfig The configuration instance
      */
-    private PhpSwarmConfig $config;
+    private readonly PhpSwarmConfig $config;
 
     /**
      * @var array<string, object> Registry of created objects
@@ -87,7 +87,6 @@ class PhpSwarmFactory
      * Create an Anthropic connector.
      *
      * @param array<string, mixed> $options
-     * @return LLMInterface
      */
     private function createAnthropicConnector(array $options = []): LLMInterface
     {
@@ -117,7 +116,6 @@ class PhpSwarmFactory
      * Create a memory instance based on the configured provider.
      *
      * @param array<string, mixed> $options
-     * @return MemoryInterface
      * @throws PhpSwarmException If the memory provider is not supported
      */
     public function createMemory(array $options = []): MemoryInterface
@@ -125,7 +123,7 @@ class PhpSwarmFactory
         $provider = $options['provider'] ?? $this->config->get('memory.provider', 'array');
 
         return match ($provider) {
-            'array' => $this->createArrayMemory($options),
+            'array' => $this->createArrayMemory(),
             'redis' => $this->createRedisMemory($options),
             'sqlite' => $this->createSqliteMemory($options),
             default => throw new PhpSwarmException("Unsupported memory provider: $provider"),
@@ -134,17 +132,12 @@ class PhpSwarmFactory
 
     /**
      * Create an array memory instance.
-     *
-     * @param array<string, mixed> $options
-     * @return MemoryInterface
      */
-    private function createArrayMemory(array $options = []): MemoryInterface
+    private function createArrayMemory(): MemoryInterface
     {
         $memory = new ArrayMemory();
-
         // Store in registry
         $this->registry['memory_array'] = $memory;
-
         return $memory;
     }
 
@@ -152,7 +145,6 @@ class PhpSwarmFactory
      * Create a Redis memory instance.
      *
      * @param array<string, mixed> $options
-     * @return MemoryInterface
      */
     private function createRedisMemory(array $options = []): MemoryInterface
     {
@@ -183,7 +175,6 @@ class PhpSwarmFactory
      * Create a SQLite memory instance.
      *
      * @param array<string, mixed> $options
-     * @return MemoryInterface
      */
     private function createSqliteMemory(array $options = []): MemoryInterface
     {
@@ -193,7 +184,7 @@ class PhpSwarmFactory
         $ttl = $options['ttl'] ?? $this->config->get('memory.ttl', 3600);
 
         // Ensure the directory exists
-        $directory = dirname($dbPath);
+        $directory = dirname((string) $dbPath);
         if (!file_exists($directory) && $dbPath !== ':memory:') {
             mkdir($directory, 0755, true);
         }
@@ -222,7 +213,7 @@ class PhpSwarmFactory
     {
         $registryKey = "tool.$name";
 
-        if (isset($this->registry[$registryKey]) && empty($options)) {
+        if (isset($this->registry[$registryKey]) && $options === []) {
             return $this->registry[$registryKey];
         }
 
@@ -234,7 +225,7 @@ class PhpSwarmFactory
             default => throw new PhpSwarmException("Unsupported tool: $name"),
         };
 
-        if (empty($options)) {
+        if ($options === []) {
             $this->registry[$registryKey] = $tool;
         }
 
@@ -278,7 +269,6 @@ class PhpSwarmFactory
      * Create a file system tool.
      *
      * @param array<string, mixed> $options Configuration options
-     * @return FileSystemTool
      */
     private function createFileSystemTool(array $options = []): FileSystemTool
     {
@@ -366,8 +356,6 @@ class PhpSwarmFactory
 
     /**
      * Get the configuration instance.
-     *
-     * @return PhpSwarmConfig
      */
     public function getConfig(): PhpSwarmConfig
     {
@@ -378,7 +366,6 @@ class PhpSwarmFactory
      * Create a logger instance.
      *
      * @param array<string, mixed> $options Configuration options
-     * @return \PhpSwarm\Contract\Logger\LoggerInterface
      */
     public function createLogger(array $options = []): \PhpSwarm\Contract\Logger\LoggerInterface
     {
@@ -394,7 +381,6 @@ class PhpSwarmFactory
      * Create a file logger.
      *
      * @param array<string, mixed> $options
-     * @return \PhpSwarm\Contract\Logger\LoggerInterface
      */
     private function createFileLogger(array $options = []): \PhpSwarm\Contract\Logger\LoggerInterface
     {
@@ -404,7 +390,7 @@ class PhpSwarmFactory
         $timestampFormat = $options['timestamp_format'] ?? $this->config->get('logger.file.timestamp_format', 'Y-m-d H:i:s');
 
         // Ensure log directory exists
-        $logDir = dirname($logFile);
+        $logDir = dirname((string) $logFile);
         if (!file_exists($logDir)) {
             mkdir($logDir, 0755, true);
         }
@@ -426,7 +412,6 @@ class PhpSwarmFactory
      * Create a performance monitor.
      *
      * @param array<string, mixed> $options Configuration options
-     * @return \PhpSwarm\Contract\Logger\MonitorInterface
      */
     public function createMonitor(array $options = []): \PhpSwarm\Contract\Logger\MonitorInterface
     {
@@ -459,7 +444,6 @@ class PhpSwarmFactory
      * @param string $name The name of the workflow
      * @param string $description The description of the workflow
      * @param array<string, mixed> $options Configuration options
-     * @return \PhpSwarm\Contract\Workflow\WorkflowInterface
      */
     public function createWorkflow(
         string $name,
@@ -508,7 +492,6 @@ class PhpSwarmFactory
      * @param string $task The task to execute
      * @param string $description The description of the step
      * @param \PhpSwarm\Contract\Agent\AgentInterface|null $agent The agent to execute the step
-     * @return \PhpSwarm\Contract\Workflow\WorkflowStepInterface
      */
     public function createAgentStep(
         string $name,
@@ -525,7 +508,6 @@ class PhpSwarmFactory
      * @param string $name The name of the step
      * @param callable $function The function to execute
      * @param string $description The description of the step
-     * @return \PhpSwarm\Contract\Workflow\WorkflowStepInterface
      */
     public function createFunctionStep(
         string $name,

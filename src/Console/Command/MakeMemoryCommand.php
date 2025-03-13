@@ -19,6 +19,7 @@ class MakeMemoryCommand extends Command
     /**
      * Configure the command
      */
+    #[\Override]
     protected function configure(): void
     {
         $this
@@ -32,6 +33,7 @@ class MakeMemoryCommand extends Command
     /**
      * Execute the command
      */
+    #[\Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);

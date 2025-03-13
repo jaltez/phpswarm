@@ -12,11 +12,6 @@ use PhpSwarm\Contract\LLM\LLMResponseInterface;
 class OpenAIResponse implements LLMResponseInterface
 {
     /**
-     * @var array<string, mixed> The raw response data from OpenAI
-     */
-    private array $rawResponse;
-
-    /**
      * @var string The content/text of the response
      */
     private string $content;
@@ -61,16 +56,13 @@ class OpenAIResponse implements LLMResponseInterface
      *
      * @param array<string, mixed> $rawResponse The raw response data from OpenAI
      */
-    public function __construct(array $rawResponse)
+    public function __construct(private array $rawResponse)
     {
-        $this->rawResponse = $rawResponse;
         $this->parseResponse();
     }
 
     /**
      * Parse the raw response to extract relevant data.
-     *
-     * @return void
      */
     private function parseResponse(): void
     {
@@ -100,6 +92,7 @@ class OpenAIResponse implements LLMResponseInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getContent(): string
     {
         return $this->content;
@@ -108,6 +101,7 @@ class OpenAIResponse implements LLMResponseInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getRawResponse(): array
     {
         return $this->rawResponse;
@@ -116,6 +110,7 @@ class OpenAIResponse implements LLMResponseInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getToolCalls(): array
     {
         return $this->toolCalls;
@@ -124,14 +119,16 @@ class OpenAIResponse implements LLMResponseInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function hasToolCalls(): bool
     {
-        return !empty($this->toolCalls);
+        return $this->toolCalls !== [];
     }
 
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getPromptTokens(): ?int
     {
         return $this->promptTokens;
@@ -140,6 +137,7 @@ class OpenAIResponse implements LLMResponseInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getCompletionTokens(): ?int
     {
         return $this->completionTokens;
@@ -148,6 +146,7 @@ class OpenAIResponse implements LLMResponseInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getTotalTokens(): ?int
     {
         return $this->totalTokens;
@@ -156,6 +155,7 @@ class OpenAIResponse implements LLMResponseInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getModel(): string
     {
         return $this->model;
@@ -164,6 +164,7 @@ class OpenAIResponse implements LLMResponseInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getMetadata(): array
     {
         return $this->metadata;
@@ -172,6 +173,7 @@ class OpenAIResponse implements LLMResponseInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getFinishReason(): ?string
     {
         return $this->finishReason;
@@ -179,10 +181,6 @@ class OpenAIResponse implements LLMResponseInterface
 
     /**
      * Add metadata to the response.
-     *
-     * @param string $key
-     * @param mixed $value
-     * @return self
      */
     public function addMetadata(string $key, mixed $value): self
     {

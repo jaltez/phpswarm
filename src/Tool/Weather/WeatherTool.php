@@ -17,22 +17,22 @@ class WeatherTool extends BaseTool
     /**
      * @var Client HTTP client
      */
-    private Client $client;
+    private readonly Client $client;
 
     /**
      * @var string API key for the weather service
      */
-    private string $apiKey;
+    private readonly string $apiKey;
 
     /**
      * @var string Base URL for the weather API
      */
-    private string $baseUrl;
+    private readonly string $baseUrl;
 
     /**
      * @var string The weather service to use
      */
-    private string $service;
+    private readonly string $service;
 
     /**
      * Create a new WeatherTool instance.
@@ -87,11 +87,12 @@ class WeatherTool extends BaseTool
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function run(array $parameters = []): mixed
     {
         $this->validateParameters($parameters);
 
-        if (empty($this->apiKey)) {
+        if ($this->apiKey === '' || $this->apiKey === '0') {
             throw new ToolExecutionException(
                 'Weather API key is required. Set it in the configuration or as an environment variable WEATHER_API_KEY.',
                 $parameters,
@@ -127,9 +128,10 @@ class WeatherTool extends BaseTool
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function isAvailable(): bool
     {
-        return !empty($this->apiKey) && !empty($this->baseUrl);
+        return $this->apiKey !== '' && $this->apiKey !== '0' && ($this->baseUrl !== '' && $this->baseUrl !== '0');
     }
 
     /**
@@ -159,9 +161,8 @@ class WeatherTool extends BaseTool
         // Process and format the response based on the type
         if ($type === 'current') {
             return $this->formatOpenWeatherMapCurrent($data);
-        } else {
-            return $this->formatOpenWeatherMapForecast($data, $days);
         }
+        return $this->formatOpenWeatherMapForecast($data, $days);
     }
 
     /**
@@ -308,9 +309,8 @@ class WeatherTool extends BaseTool
         // Process and format the response based on the type
         if ($type === 'current') {
             return $this->formatWeatherApiCurrent($data);
-        } else {
-            return $this->formatWeatherApiForecast($data);
         }
+        return $this->formatWeatherApiForecast($data);
     }
 
     /**

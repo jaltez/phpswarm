@@ -15,7 +15,7 @@ class FileLogger implements LoggerInterface
     /**
      * Log levels in ascending order of severity.
      */
-    private const LEVELS = [
+    private const array LEVELS = [
         'debug' => 0,
         'info' => 1,
         'notice' => 2,
@@ -27,11 +27,6 @@ class FileLogger implements LoggerInterface
     ];
 
     /**
-     * @var string Path to the log file
-     */
-    private string $logFile;
-
-    /**
      * @var string Minimum log level to record
      */
     private string $minLevel;
@@ -39,17 +34,7 @@ class FileLogger implements LoggerInterface
     /**
      * @var resource|null File handle for the log file
      */
-    private $fileHandle = null;
-
-    /**
-     * @var bool Whether to include timestamps in log messages
-     */
-    private bool $includeTimestamps;
-
-    /**
-     * @var string The format for log timestamps
-     */
-    private string $timestampFormat;
+    private $fileHandle;
 
     /**
      * Create a new FileLogger instance.
@@ -63,20 +48,15 @@ class FileLogger implements LoggerInterface
     public function __construct(
         string $logFile,
         string $minLevel = 'debug',
-        bool $includeTimestamps = true,
-        string $timestampFormat = 'Y-m-d H:i:s'
+        private readonly bool $includeTimestamps = true,
+        private readonly string $timestampFormat = 'Y-m-d H:i:s'
     ) {
-        $this->logFile = $logFile;
         $this->setMinLevel($minLevel);
-        $this->includeTimestamps = $includeTimestamps;
-        $this->timestampFormat = $timestampFormat;
 
         // Ensure log directory exists
         $logDir = dirname($logFile);
-        if (!file_exists($logDir)) {
-            if (!mkdir($logDir, 0755, true)) {
-                throw new PhpSwarmException("Failed to create log directory: $logDir");
-            }
+        if (!file_exists($logDir) && !mkdir($logDir, 0755, true)) {
+            throw new PhpSwarmException("Failed to create log directory: $logDir");
         }
 
         // Open log file for appending
@@ -99,6 +79,7 @@ class FileLogger implements LoggerInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function emergency(string $message, array $context = []): void
     {
         $this->log('emergency', $message, $context);
@@ -107,6 +88,7 @@ class FileLogger implements LoggerInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function alert(string $message, array $context = []): void
     {
         $this->log('alert', $message, $context);
@@ -115,6 +97,7 @@ class FileLogger implements LoggerInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function critical(string $message, array $context = []): void
     {
         $this->log('critical', $message, $context);
@@ -123,6 +106,7 @@ class FileLogger implements LoggerInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function error(string $message, array $context = []): void
     {
         $this->log('error', $message, $context);
@@ -131,6 +115,7 @@ class FileLogger implements LoggerInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function warning(string $message, array $context = []): void
     {
         $this->log('warning', $message, $context);
@@ -139,6 +124,7 @@ class FileLogger implements LoggerInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function notice(string $message, array $context = []): void
     {
         $this->log('notice', $message, $context);
@@ -147,6 +133,7 @@ class FileLogger implements LoggerInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function info(string $message, array $context = []): void
     {
         $this->log('info', $message, $context);
@@ -155,6 +142,7 @@ class FileLogger implements LoggerInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function debug(string $message, array $context = []): void
     {
         $this->log('debug', $message, $context);
@@ -163,6 +151,7 @@ class FileLogger implements LoggerInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function log(string $level, string $message, array $context = []): void
     {
         if (!isset(self::LEVELS[$level])) {
@@ -186,6 +175,7 @@ class FileLogger implements LoggerInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getMinLevel(): string
     {
         return $this->minLevel;
@@ -194,6 +184,7 @@ class FileLogger implements LoggerInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function setMinLevel(string $level): self
     {
         if (!isset(self::LEVELS[$level])) {
@@ -230,7 +221,7 @@ class FileLogger implements LoggerInterface
 
         // Format context as JSON if not empty
         $contextString = '';
-        if (!empty($context)) {
+        if ($context !== []) {
             $contextString = ' ' . json_encode($context, JSON_UNESCAPED_SLASHES);
         }
 

@@ -15,17 +15,17 @@ class RedisMemory implements MemoryInterface
     /**
      * @var \Redis The Redis client
      */
-    private \Redis $redis;
+    private readonly \Redis $redis;
 
     /**
      * @var string Prefix for all keys stored in Redis
      */
-    private string $prefix;
+    private readonly string $prefix;
 
     /**
      * @var int Time-to-live in seconds (0 = no expiration)
      */
-    private int $ttl;
+    private readonly int $ttl;
 
     /**
      * Create a new RedisMemory instance.
@@ -50,10 +50,8 @@ class RedisMemory implements MemoryInterface
                 throw new MemoryException("Failed to connect to Redis at $host:$port");
             }
 
-            if ($password !== null) {
-                if (!$this->redis->auth($password)) {
-                    throw new MemoryException('Redis authentication failed');
-                }
+            if ($password !== null && !$this->redis->auth($password)) {
+                throw new MemoryException('Redis authentication failed');
             }
 
             if (!$this->redis->select($database)) {
@@ -67,6 +65,7 @@ class RedisMemory implements MemoryInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function add(string $key, mixed $value, array $metadata = []): void
     {
         $data = [
@@ -95,6 +94,7 @@ class RedisMemory implements MemoryInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function get(string $key): mixed
     {
         try {
@@ -115,6 +115,7 @@ class RedisMemory implements MemoryInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function has(string $key): bool
     {
         try {
@@ -127,6 +128,7 @@ class RedisMemory implements MemoryInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function delete(string $key): bool
     {
         try {
@@ -147,6 +149,7 @@ class RedisMemory implements MemoryInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function search(string $query, int $limit = 5): array
     {
         try {
@@ -158,7 +161,7 @@ class RedisMemory implements MemoryInterface
             foreach ($keys as $key) {
                 $serialized = $this->redis->get($this->prefixKey($key));
 
-                if ($serialized !== false && str_contains($serialized, $query)) {
+                if ($serialized !== false && str_contains((string) $serialized, $query)) {
                     $data = unserialize($serialized);
                     $results[$key] = $data['value'] ?? null;
                     $count++;
@@ -178,6 +181,7 @@ class RedisMemory implements MemoryInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function clear(): void
     {
         try {
@@ -198,6 +202,7 @@ class RedisMemory implements MemoryInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function all(): array
     {
         try {
@@ -222,6 +227,7 @@ class RedisMemory implements MemoryInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function size(): int
     {
         try {
@@ -234,6 +240,7 @@ class RedisMemory implements MemoryInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getHistory(int $limit = 10, int $offset = 0): array
     {
         try {
@@ -257,9 +264,7 @@ class RedisMemory implements MemoryInterface
             }
 
             // Sort by timestamp in descending order (newest first)
-            usort($allData, function ($a, $b) {
-                return $b['timestamp'] <=> $a['timestamp'];
-            });
+            usort($allData, fn(array $a, array $b): int => $b['timestamp'] <=> $a['timestamp']);
 
             // Apply offset and limit
             $allData = array_slice($allData, $offset, $limit);
@@ -284,7 +289,6 @@ class RedisMemory implements MemoryInterface
     /**
      * Get the metadata for a specific key.
      *
-     * @param string $key
      * @return array<string, mixed>|null
      */
     public function getMetadata(string $key): ?array
@@ -306,9 +310,6 @@ class RedisMemory implements MemoryInterface
 
     /**
      * Get the timestamp for a specific key.
-     *
-     * @param string $key
-     * @return \DateTimeImmutable|null
      */
     public function getTimestamp(string $key): ?\DateTimeImmutable
     {
@@ -330,9 +331,6 @@ class RedisMemory implements MemoryInterface
 
     /**
      * Prefix a key with the Redis namespace.
-     *
-     * @param string $key
-     * @return string
      */
     private function prefixKey(string $key): string
     {

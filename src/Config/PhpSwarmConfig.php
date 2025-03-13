@@ -63,12 +63,10 @@ class PhpSwarmConfig
 
     /**
      * Get the singleton instance.
-     *
-     * @return PhpSwarmConfig
      */
     public static function getInstance(): PhpSwarmConfig
     {
-        if (self::$instance === null) {
+        if (!self::$instance instanceof \PhpSwarm\Config\PhpSwarmConfig) {
             self::$instance = new self();
         }
 
@@ -79,13 +77,12 @@ class PhpSwarmConfig
      * Load configuration from a .env file using Dotenv.
      *
      * @param string|null $path Path to the directory containing .env file
-     * @return self
      */
     public function loadDotEnv(?string $path = null): self
     {
         try {
             // Default to project root or current directory
-            $path = $path ?? $this->findProjectRoot();
+            $path ??= $this->findProjectRoot();
 
             // Check if .env file exists
             if (file_exists($path . '/.env')) {
@@ -96,7 +93,7 @@ class PhpSwarmConfig
                 // Reload environment variables after loading .env
                 $this->loadFromEnvironment();
             }
-        } catch (\Throwable $e) {
+        } catch (\Throwable) {
             // Silently ignore errors to prevent issues when .env is not available
             // This means we'll fall back to system environment variables and defaults
         }
@@ -106,8 +103,6 @@ class PhpSwarmConfig
 
     /**
      * Attempt to find the project root directory.
-     *
-     * @return string
      */
     private function findProjectRoot(): string
     {
@@ -129,7 +124,6 @@ class PhpSwarmConfig
      * Load configuration from a file.
      *
      * @param string $path Path to the configuration file (PHP, JSON, or INI)
-     * @return PhpSwarmConfig
      * @throws PhpSwarmException If the file doesn't exist or can't be loaded
      */
     public function loadFromFile(string $path): self
@@ -218,8 +212,6 @@ class PhpSwarmConfig
 
     /**
      * Load configuration from environment variables.
-     *
-     * @return self
      */
     public function loadFromEnvironment(): self
     {
@@ -279,7 +271,6 @@ class PhpSwarmConfig
      *
      * @param string $key The configuration key (dot notation)
      * @param mixed $value The configuration value
-     * @return self
      */
     public function set(string $key, mixed $value): self
     {
@@ -317,7 +308,7 @@ class PhpSwarmConfig
      */
     public function save(?string $path = null): bool
     {
-        $path = $path ?? $this->configPath;
+        $path ??= $this->configPath;
 
         if ($path === null) {
             throw new PhpSwarmException("No configuration file path specified");
@@ -432,9 +423,9 @@ class PhpSwarmConfig
         $result = [];
 
         foreach ($array as $key => $value) {
-            $newKey = $prefix ? $prefix . '.' . $key : $key;
+            $newKey = $prefix !== '' && $prefix !== '0' ? $prefix . '.' . $key : $key;
 
-            if (is_array($value) && !empty($value) && $this->isAssociativeArray($value)) {
+            if (is_array($value) && $value !== [] && $this->isAssociativeArray($value)) {
                 $result = array_merge($result, $this->flattenArray($value, $newKey));
             } else {
                 $result[$newKey] = $value;
@@ -468,13 +459,12 @@ class PhpSwarmConfig
      * @param array<string, mixed> $array The array to modify
      * @param array<int, string> $keys The key parts
      * @param mixed $value The value to set
-     * @return void
      */
     private function setArrayValue(array &$array, array $keys, mixed $value): void
     {
         $key = array_shift($keys);
 
-        if (empty($keys)) {
+        if ($keys === []) {
             $array[$key] = $value;
         } else {
             if (!isset($array[$key]) || !is_array($array[$key])) {
@@ -507,7 +497,7 @@ class PhpSwarmConfig
     {
         $export = var_export($var, true);
         $export = preg_replace("/array \(([^()])/", "[$1", $export);
-        $export = preg_replace("/\)$/", "]", $export);
+        $export = preg_replace("/\)$/", "]", (string) $export);
         $export = str_replace("array (", "[", $export);
         $export = str_replace("=> \n", "=> ", $export);
 

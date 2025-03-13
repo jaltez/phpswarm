@@ -14,21 +14,6 @@ use PhpSwarm\Exception\PhpSwarmException;
 class AgentStep implements WorkflowStepInterface
 {
     /**
-     * @var string The name of the step
-     */
-    private string $name;
-
-    /**
-     * @var string The description of the step
-     */
-    private string $description;
-
-    /**
-     * @var AgentInterface|null The agent to execute this step
-     */
-    private ?AgentInterface $agent = null;
-
-    /**
      * @var int|null The timeout in seconds
      */
     private ?int $timeout = null;
@@ -49,11 +34,6 @@ class AgentStep implements WorkflowStepInterface
     private array $outputMapping = [];
 
     /**
-     * @var string The task to execute
-     */
-    private string $task;
-
-    /**
      * Create a new AgentStep instance.
      *
      * @param string $name The name of the step
@@ -61,24 +41,17 @@ class AgentStep implements WorkflowStepInterface
      * @param string $description The description of the step
      * @param AgentInterface|null $agent The agent to execute this step
      */
-    public function __construct(
-        string $name,
-        string $task,
-        string $description = '',
-        ?AgentInterface $agent = null
-    ) {
-        $this->name = $name;
-        $this->task = $task;
-        $this->description = $description;
-        $this->agent = $agent;
+    public function __construct(private string $name, private string $task, private string $description = '', private ?AgentInterface $agent = null)
+    {
     }
 
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function execute(array $input, array $stepsOutput = []): array
     {
-        if (!$this->agent) {
+        if (!$this->agent instanceof \PhpSwarm\Contract\Agent\AgentInterface) {
             throw new PhpSwarmException("No agent assigned to step '{$this->name}'");
         }
 
@@ -117,6 +90,7 @@ class AgentStep implements WorkflowStepInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getName(): string
     {
         return $this->name;
@@ -125,6 +99,7 @@ class AgentStep implements WorkflowStepInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function setName(string $name): self
     {
         $this->name = $name;
@@ -134,6 +109,7 @@ class AgentStep implements WorkflowStepInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getDescription(): string
     {
         return $this->description;
@@ -142,6 +118,7 @@ class AgentStep implements WorkflowStepInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function setDescription(string $description): self
     {
         $this->description = $description;
@@ -151,6 +128,7 @@ class AgentStep implements WorkflowStepInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getAgent(): ?AgentInterface
     {
         return $this->agent;
@@ -159,6 +137,7 @@ class AgentStep implements WorkflowStepInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function setAgent(AgentInterface $agent): self
     {
         $this->agent = $agent;
@@ -168,6 +147,7 @@ class AgentStep implements WorkflowStepInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getTimeout(): ?int
     {
         return $this->timeout;
@@ -176,6 +156,7 @@ class AgentStep implements WorkflowStepInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function setTimeout(?int $timeout): self
     {
         $this->timeout = $timeout;
@@ -185,6 +166,7 @@ class AgentStep implements WorkflowStepInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function isRequired(): bool
     {
         return $this->required;
@@ -193,6 +175,7 @@ class AgentStep implements WorkflowStepInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function setRequired(bool $required): self
     {
         $this->required = $required;
@@ -202,6 +185,7 @@ class AgentStep implements WorkflowStepInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getInputMapping(): array
     {
         return $this->inputMapping;
@@ -210,6 +194,7 @@ class AgentStep implements WorkflowStepInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function setInputMapping(array $mapping): self
     {
         $this->inputMapping = $mapping;
@@ -219,6 +204,7 @@ class AgentStep implements WorkflowStepInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getOutputMapping(): array
     {
         return $this->outputMapping;
@@ -227,6 +213,7 @@ class AgentStep implements WorkflowStepInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function setOutputMapping(array $mapping): self
     {
         $this->outputMapping = $mapping;
@@ -247,7 +234,6 @@ class AgentStep implements WorkflowStepInterface
      * Set the task to execute.
      *
      * @param string $task The task
-     * @return self
      */
     public function setTask(string $task): self
     {

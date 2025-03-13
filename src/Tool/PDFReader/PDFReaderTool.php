@@ -61,6 +61,7 @@ class PDFReaderTool extends BaseTool
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function run(array $parameters = []): mixed
     {
         $this->validateParameters($parameters);
@@ -113,26 +114,26 @@ class PDFReaderTool extends BaseTool
     /**
      * {@inheritdoc}
      */
-    public function isAvailable(): bool
+    #[\Override]
+    public function isAvailable() : bool
     {
         // Check if either external tools or PHP libraries are available
-        return $this->isExternalToolAvailable() || class_exists('Smalot\PdfParser\Parser');
+        if ($this->isExternalToolAvailable()) {
+            return true;
+        }
+        return class_exists('Smalot\PdfParser\Parser');
     }
 
     /**
      * Check if the external pdftotext tool is available.
-     *
-     * @return bool
      */
     private function isExternalToolAvailable(): bool
     {
-        return !empty($this->pdftotextPath) && file_exists($this->pdftotextPath) && is_executable($this->pdftotextPath);
+        return $this->pdftotextPath !== '' && $this->pdftotextPath !== '0' && file_exists($this->pdftotextPath) && is_executable($this->pdftotextPath);
     }
 
     /**
      * Try to find the pdftotext binary on the system.
-     *
-     * @return string
      */
     private function findPdfToTextBinary(): string
     {
@@ -163,7 +164,7 @@ class PDFReaderTool extends BaseTool
             exec('which pdftotext 2>/dev/null', $output, $returnVar);
         }
 
-        if ($returnVar === 0 && !empty($output[0])) {
+        if ($returnVar === 0 && (isset($output[0]) && ($output[0] !== '' && $output[0] !== '0'))) {
             return $output[0];
         }
 
@@ -250,10 +251,9 @@ class PDFReaderTool extends BaseTool
             }
 
             return $pages[$page - 1]->getText();
-        } else {
-            // Extract text from all pages
-            return $pdf->getText();
         }
+        // Extract text from all pages
+        return $pdf->getText();
     }
 
     /**
@@ -273,8 +273,8 @@ class PDFReaderTool extends BaseTool
         foreach ($lines as $line) {
             $trimmedLine = trim($line);
 
-            if (empty($trimmedLine)) {
-                if (!empty($currentParagraph)) {
+            if ($trimmedLine === '' || $trimmedLine === '0') {
+                if ($currentParagraph !== '' && $currentParagraph !== '0') {
                     $paragraphs[] = trim($currentParagraph);
                     $currentParagraph = '';
                 }
@@ -284,7 +284,7 @@ class PDFReaderTool extends BaseTool
         }
 
         // Add the last paragraph if not empty
-        if (!empty($currentParagraph)) {
+        if ($currentParagraph !== '' && $currentParagraph !== '0') {
             $paragraphs[] = trim($currentParagraph);
         }
 
@@ -307,7 +307,6 @@ class PDFReaderTool extends BaseTool
      * Set the path to the pdftotext binary.
      *
      * @param string $path The path to the pdftotext binary
-     * @return self
      */
     public function setPdfToTextPath(string $path): self
     {

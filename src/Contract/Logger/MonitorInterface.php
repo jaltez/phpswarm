@@ -33,7 +33,6 @@ interface MonitorInterface
      * @param string $name The name of the metric
      * @param mixed $value The value of the metric
      * @param array<string, mixed> $context Additional context data
-     * @return void
      */
     public function recordMetric(string $name, mixed $value, array $context = []): void;
 
@@ -61,7 +60,6 @@ interface MonitorInterface
      *
      * @param string $processId The process ID from beginProcess
      * @param array<string, mixed> $context Additional context data
-     * @return void
      */
     public function endProcess(string $processId, array $context = []): void;
 
@@ -71,7 +69,6 @@ interface MonitorInterface
      * @param string $processId The process ID from beginProcess
      * @param string $reason The reason for the failure
      * @param array<string, mixed> $context Additional context data
-     * @return void
      */
     public function failProcess(string $processId, string $reason, array $context = []): void;
 
@@ -92,8 +89,6 @@ interface MonitorInterface
 
     /**
      * Clear all metrics.
-     *
-     * @return void
      */
     public function clearMetrics(): void;
 }

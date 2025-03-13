@@ -82,6 +82,7 @@ class MySQLQueryTool extends BaseTool
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function run(array $parameters = []): mixed
     {
         $this->validateParameters($parameters);
@@ -92,7 +93,7 @@ class MySQLQueryTool extends BaseTool
 
         try {
             // Connect to the database if not already connected
-            if (!$this->connection) {
+            if (!$this->connection instanceof \PDO) {
                 $this->connect();
             }
 
@@ -111,13 +112,12 @@ class MySQLQueryTool extends BaseTool
                     'value' => $statement->fetchColumn(),
                     default => $statement->fetchAll(),
                 };
-            } else {
-                // For non-SELECT queries, return affected rows
-                return [
-                    'affected_rows' => $statement->rowCount(),
-                    'last_insert_id' => $this->connection->lastInsertId() ?: null,
-                ];
             }
+            // For non-SELECT queries, return affected rows
+            return [
+                'affected_rows' => $statement->rowCount(),
+                'last_insert_id' => $this->connection->lastInsertId() ?: null,
+            ];
         } catch (PDOException $e) {
             throw new ToolExecutionException(
                 "Database query failed: {$e->getMessage()}",
@@ -140,6 +140,7 @@ class MySQLQueryTool extends BaseTool
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function isAvailable(): bool
     {
         try {
@@ -162,7 +163,6 @@ class MySQLQueryTool extends BaseTool
     /**
      * Connect to the database.
      *
-     * @return void
      * @throws PDOException If connection fails
      */
     private function connect(): void
@@ -179,8 +179,6 @@ class MySQLQueryTool extends BaseTool
 
     /**
      * Build the DSN string for the PDO connection based on the driver.
-     *
-     * @return string
      */
     private function buildDsn(): string
     {
@@ -206,7 +204,6 @@ class MySQLQueryTool extends BaseTool
      * Check if a query is a SELECT query.
      *
      * @param string $query The SQL query
-     * @return bool
      */
     private function isSelectQuery(string $query): bool
     {
@@ -219,8 +216,6 @@ class MySQLQueryTool extends BaseTool
 
     /**
      * Close the database connection.
-     *
-     * @return void
      */
     public function disconnect(): void
     {
@@ -231,7 +226,6 @@ class MySQLQueryTool extends BaseTool
      * Set the database configuration.
      *
      * @param array<string, mixed> $config The database configuration
-     * @return self
      */
     public function setConfig(array $config): self
     {

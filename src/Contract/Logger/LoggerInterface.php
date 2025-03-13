@@ -17,7 +17,6 @@ interface LoggerInterface
      *
      * @param string $message The log message
      * @param array<string, mixed> $context Additional context data
-     * @return void
      */
     public function emergency(string $message, array $context = []): void;
 
@@ -26,7 +25,6 @@ interface LoggerInterface
      *
      * @param string $message The log message
      * @param array<string, mixed> $context Additional context data
-     * @return void
      */
     public function alert(string $message, array $context = []): void;
 
@@ -35,7 +33,6 @@ interface LoggerInterface
      *
      * @param string $message The log message
      * @param array<string, mixed> $context Additional context data
-     * @return void
      */
     public function critical(string $message, array $context = []): void;
 
@@ -44,7 +41,6 @@ interface LoggerInterface
      *
      * @param string $message The log message
      * @param array<string, mixed> $context Additional context data
-     * @return void
      */
     public function error(string $message, array $context = []): void;
 
@@ -53,7 +49,6 @@ interface LoggerInterface
      *
      * @param string $message The log message
      * @param array<string, mixed> $context Additional context data
-     * @return void
      */
     public function warning(string $message, array $context = []): void;
 
@@ -62,7 +57,6 @@ interface LoggerInterface
      *
      * @param string $message The log message
      * @param array<string, mixed> $context Additional context data
-     * @return void
      */
     public function notice(string $message, array $context = []): void;
 
@@ -71,7 +65,6 @@ interface LoggerInterface
      *
      * @param string $message The log message
      * @param array<string, mixed> $context Additional context data
-     * @return void
      */
     public function info(string $message, array $context = []): void;
 
@@ -80,7 +73,6 @@ interface LoggerInterface
      *
      * @param string $message The log message
      * @param array<string, mixed> $context Additional context data
-     * @return void
      */
     public function debug(string $message, array $context = []): void;
 
@@ -90,7 +82,6 @@ interface LoggerInterface
      * @param string $level The log level
      * @param string $message The log message
      * @param array<string, mixed> $context Additional context data
-     * @return void
      */
     public function log(string $level, string $message, array $context = []): void;
 
@@ -105,7 +96,6 @@ interface LoggerInterface
      * Sets the minimum logging level for this logger.
      *
      * @param string $level The minimum log level
-     * @return self
      */
     public function setMinLevel(string $level): self;
 }

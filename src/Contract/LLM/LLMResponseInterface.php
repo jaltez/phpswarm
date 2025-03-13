@@ -11,8 +11,6 @@ interface LLMResponseInterface
 {
     /**
      * Get the main text/content of the response.
-     *
-     * @return string
      */
     public function getContent(): string;
 
@@ -32,36 +30,26 @@ interface LLMResponseInterface
 
     /**
      * Get whether the response contains tool calls.
-     *
-     * @return bool
      */
     public function hasToolCalls(): bool;
 
     /**
      * Get the number of prompt tokens used.
-     *
-     * @return int|null
      */
     public function getPromptTokens(): ?int;
 
     /**
      * Get the number of completion tokens used.
-     *
-     * @return int|null
      */
     public function getCompletionTokens(): ?int;
 
     /**
      * Get the total number of tokens used.
-     *
-     * @return int|null
      */
     public function getTotalTokens(): ?int;
 
     /**
      * Get the model used for this response.
-     *
-     * @return string
      */
     public function getModel(): string;
 
@@ -74,8 +62,6 @@ interface LLMResponseInterface
 
     /**
      * Get the finish reason provided by the LLM.
-     *
-     * @return string|null
      */
     public function getFinishReason(): ?string;
 }

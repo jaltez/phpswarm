@@ -27,29 +27,21 @@ interface AgentInterface
 
     /**
      * Get the name of the agent.
-     *
-     * @return string
      */
     public function getName(): string;
 
     /**
      * Get the role of the agent.
-     *
-     * @return string
      */
     public function getRole(): string;
 
     /**
      * Get the goal of the agent.
-     *
-     * @return string
      */
     public function getGoal(): string;
 
     /**
      * Get the backstory of the agent.
-     *
-     * @return string
      */
     public function getBackstory(): string;
 
@@ -64,7 +56,6 @@ interface AgentInterface
      * Add a tool to the agent.
      *
      * @param ToolInterface $tool The tool to add
-     * @return self
      */
     public function addTool(ToolInterface $tool): self;
 
@@ -72,7 +63,6 @@ interface AgentInterface
      * Set the LLM to be used by the agent.
      *
      * @param LLMInterface $llm The LLM to use
-     * @return self
      */
     public function withLLM(LLMInterface $llm): self;
 
@@ -80,7 +70,6 @@ interface AgentInterface
      * Set the memory system to be used by the agent.
      *
      * @param MemoryInterface $memory The memory system to use
-     * @return self
      */
     public function withMemory(MemoryInterface $memory): self;
 
@@ -88,7 +77,6 @@ interface AgentInterface
      * Enable or disable verbose logging for the agent.
      *
      * @param bool $verbose Whether to enable verbose logging
-     * @return self
      */
     public function withVerboseLogging(bool $verbose = true): self;
 
@@ -96,7 +84,6 @@ interface AgentInterface
      * Set whether the agent can delegate tasks to other agents.
      *
      * @param bool $allowDelegation Whether to allow delegation
-     * @return self
      */
     public function allowDelegation(bool $allowDelegation = true): self;
 }

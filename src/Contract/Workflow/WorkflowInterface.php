@@ -19,7 +19,6 @@ interface WorkflowInterface
      *
      * @param string $stepId Unique identifier for the step
      * @param WorkflowStepInterface $step The step to add
-     * @return self
      */
     public function addStep(string $stepId, WorkflowStepInterface $step): self;
 
@@ -28,7 +27,6 @@ interface WorkflowInterface
      *
      * @param string $stepId The step that depends on another
      * @param string $dependsOnStepId The step that must complete first
-     * @return self
      */
     public function addDependency(string $stepId, string $dependsOnStepId): self;
 
@@ -37,7 +35,6 @@ interface WorkflowInterface
      *
      * @param string $stepId The step to set dependencies for
      * @param array<string> $dependsOnStepIds The steps that must complete first
-     * @return self
      */
     public function setDependencies(string $stepId, array $dependsOnStepIds): self;
 
@@ -83,7 +80,6 @@ interface WorkflowInterface
      * Set the name of the workflow.
      *
      * @param string $name The workflow name
-     * @return self
      */
     public function setName(string $name): self;
 
@@ -98,7 +94,6 @@ interface WorkflowInterface
      * Set the description of the workflow.
      *
      * @param string $description The workflow description
-     * @return self
      */
     public function setDescription(string $description): self;
 
@@ -106,7 +101,6 @@ interface WorkflowInterface
      * Set the maximum number of parallel steps.
      *
      * @param int $maxParallelSteps The maximum number of steps to run in parallel
-     * @return self
      */
     public function setMaxParallelSteps(int $maxParallelSteps): self;
 

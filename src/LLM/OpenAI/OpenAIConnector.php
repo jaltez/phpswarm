@@ -18,27 +18,27 @@ class OpenAIConnector implements LLMInterface
     /**
      * @var string OpenAI API key
      */
-    private string $apiKey;
+    private readonly string $apiKey;
 
     /**
      * @var string Default model to use
      */
-    private string $defaultModel;
+    private readonly string $defaultModel;
 
     /**
      * @var string Base URL for the OpenAI API
      */
-    private string $baseUrl;
+    private readonly string $baseUrl;
 
     /**
      * @var Client HTTP client
      */
-    private Client $client;
+    private readonly Client $client;
 
     /**
      * @var array<string, mixed> Default request options
      */
-    private array $defaultOptions;
+    private readonly array $defaultOptions;
 
     /**
      * @var array<string, int> Token limits per model
@@ -87,6 +87,7 @@ class OpenAIConnector implements LLMInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function chat(array $messages, array $options = []): LLMResponseInterface
     {
         $options = $this->prepareOptions($options);
@@ -132,6 +133,7 @@ class OpenAIConnector implements LLMInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function complete(string $prompt, array $options = []): LLMResponseInterface
     {
         return $this->chat([
@@ -142,6 +144,7 @@ class OpenAIConnector implements LLMInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function stream(array $messages, callable $callback, array $options = []): void
     {
         $options = $this->prepareOptions($options);
@@ -178,18 +181,22 @@ class OpenAIConnector implements LLMInterface
 
             while (!$stream->eof()) {
                 $line = $stream->read(1024);
-
-                if (empty($line)) {
+                if ($line === '') {
+                    continue;
+                }
+                if ($line === '0') {
                     continue;
                 }
 
                 $lines = explode("\n", $line);
 
                 foreach ($lines as $dataLine) {
-                    if (empty($dataLine)) {
+                    if ($dataLine === '') {
                         continue;
                     }
-
+                    if ($dataLine === '0') {
+                        continue;
+                    }
                     // Remove "data: " prefix
                     if (str_starts_with($dataLine, 'data: ')) {
                         $dataLine = substr($dataLine, 6);
@@ -207,7 +214,7 @@ class OpenAIConnector implements LLMInterface
                             $chunk = $data['choices'][0]['delta']['content'];
                             $callback($chunk, $data);
                         }
-                    } catch (\JsonException $e) {
+                    } catch (\JsonException) {
                         // Skip invalid JSON
                         continue;
                     }
@@ -225,6 +232,7 @@ class OpenAIConnector implements LLMInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getTokenCount(string|array $input): int
     {
         // This is a very simplified token counting method
@@ -239,6 +247,7 @@ class OpenAIConnector implements LLMInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getDefaultModel(): string
     {
         return $this->defaultModel;
@@ -247,6 +256,7 @@ class OpenAIConnector implements LLMInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getProviderName(): string
     {
         return 'OpenAI';
@@ -255,6 +265,7 @@ class OpenAIConnector implements LLMInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function supportsFunctionCalling(): bool
     {
         return true;
@@ -263,6 +274,7 @@ class OpenAIConnector implements LLMInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function supportsStreaming(): bool
     {
         return true;
@@ -271,6 +283,7 @@ class OpenAIConnector implements LLMInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getMaxContextLength(): int
     {
         return $this->tokenLimits[$this->defaultModel] ?? 4096;

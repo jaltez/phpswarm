@@ -23,15 +23,11 @@ interface ToolInterface
 
     /**
      * Get the name of the tool.
-     *
-     * @return string
      */
     public function getName(): string;
 
     /**
      * Get the description of the tool.
-     *
-     * @return string
      */
     public function getDescription(): string;
 
@@ -47,15 +43,11 @@ interface ToolInterface
      *
      * This can be used to check if the tool requires external resources
      * that might not be available, or if it depends on certain conditions.
-     *
-     * @return bool
      */
     public function isAvailable(): bool;
 
     /**
      * Get whether the tool requires authentication.
-     *
-     * @return bool
      */
     public function requiresAuthentication(): bool;
 
@@ -63,7 +55,6 @@ interface ToolInterface
      * Tag this tool to categorize it.
      *
      * @param string $tag The tag to add
-     * @return self
      */
     public function addTag(string $tag): self;
 

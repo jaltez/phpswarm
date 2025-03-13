@@ -18,32 +18,32 @@ class AnthropicConnector implements LLMInterface
     /**
      * @var string API key for authentication
      */
-    private string $apiKey;
+    private readonly string $apiKey;
 
     /**
      * @var string Default model to use
      */
-    private string $defaultModel;
+    private readonly string $defaultModel;
 
     /**
      * @var string Base URL for API requests
      */
-    private string $baseUrl;
+    private readonly string $baseUrl;
 
     /**
      * @var Client HTTP client for making requests
      */
-    private Client $client;
+    private readonly Client $client;
 
     /**
      * @var array<string, mixed> Default options for API requests
      */
-    private array $defaultOptions;
+    private readonly array $defaultOptions;
 
     /**
      * @var array<string, int> Model token limits
      */
-    private const MODEL_TOKEN_LIMITS = [
+    private const array MODEL_TOKEN_LIMITS = [
         'claude-3-opus-20240229' => 200000,
         'claude-3-sonnet-20240229' => 200000,
         'claude-3-haiku-20240307' => 200000,
@@ -87,6 +87,7 @@ class AnthropicConnector implements LLMInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function chat(array $messages, array $options = []): LLMResponseInterface
     {
         $options = $this->prepareOptions($options);
@@ -128,6 +129,7 @@ class AnthropicConnector implements LLMInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function complete(string $prompt, array $options = []): LLMResponseInterface
     {
         // Convert the prompt to a message and use chat
@@ -144,6 +146,7 @@ class AnthropicConnector implements LLMInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function stream(array $messages, callable $callback, array $options = []): void
     {
         $options = $this->prepareOptions($options);
@@ -178,9 +181,11 @@ class AnthropicConnector implements LLMInterface
             // Process each line as it comes in
             while (!$body->eof()) {
                 $line = $body->readline();
-
                 // Skip empty lines or lines not starting with "data:"
-                if (empty($line) || strpos($line, 'data:') !== 0) {
+                if (empty($line)) {
+                    continue;
+                }
+                if (!str_starts_with($line, 'data:')) {
                     continue;
                 }
 
@@ -209,6 +214,7 @@ class AnthropicConnector implements LLMInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getTokenCount(string|array $input): int
     {
         // This is a simple estimation as Anthropic doesn't provide an official tokenizer
@@ -224,6 +230,7 @@ class AnthropicConnector implements LLMInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getDefaultModel(): string
     {
         return $this->defaultModel;
@@ -232,6 +239,7 @@ class AnthropicConnector implements LLMInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getProviderName(): string
     {
         return 'Anthropic';
@@ -240,6 +248,7 @@ class AnthropicConnector implements LLMInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function supportsFunctionCalling(): bool
     {
         return true;
@@ -248,6 +257,7 @@ class AnthropicConnector implements LLMInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function supportsStreaming(): bool
     {
         return true;
@@ -256,6 +266,7 @@ class AnthropicConnector implements LLMInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getMaxContextLength(): int
     {
         return self::MODEL_TOKEN_LIMITS[$this->defaultModel] ?? 100000;

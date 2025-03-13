@@ -11,15 +11,11 @@ interface AgentResponseInterface
 {
     /**
      * Get the original task that was given to the agent.
-     *
-     * @return string
      */
     public function getTask(): string;
 
     /**
      * Get the final answer or result produced by the agent.
-     *
-     * @return string
      */
     public function getFinalAnswer(): string;
 
@@ -32,22 +28,16 @@ interface AgentResponseInterface
 
     /**
      * Get the execution time in seconds.
-     *
-     * @return float
      */
     public function getExecutionTime(): float;
 
     /**
      * Get whether the agent completed the task successfully.
-     *
-     * @return bool
      */
     public function isSuccessful(): bool;
 
     /**
      * Get any error messages that occurred during execution.
-     *
-     * @return string|null
      */
     public function getError(): ?string;
 

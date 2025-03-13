@@ -18,36 +18,6 @@ use PhpSwarm\Memory\ArrayMemory;
 class Agent implements AgentInterface
 {
     /**
-     * @var string Agent name
-     */
-    private string $name;
-
-    /**
-     * @var string Agent role
-     */
-    private string $role;
-
-    /**
-     * @var string Agent goal
-     */
-    private string $goal;
-
-    /**
-     * @var string Agent backstory
-     */
-    private string $backstory;
-
-    /**
-     * @var LLMInterface|null The LLM for this agent
-     */
-    private ?LLMInterface $llm = null;
-
-    /**
-     * @var MemoryInterface The memory system
-     */
-    private MemoryInterface $memory;
-
-    /**
      * @var array<ToolInterface> Available tools
      */
     private array $tools = [];
@@ -77,26 +47,12 @@ class Agent implements AgentInterface
      * @param LLMInterface|null $llm The LLM to use
      * @param MemoryInterface|null $memory The memory system
      */
-    public function __construct(
-        string $name,
-        string $role,
-        string $goal,
-        string $backstory = '',
-        ?LLMInterface $llm = null,
-        ?MemoryInterface $memory = null
-    ) {
-        $this->name = $name;
-        $this->role = $role;
-        $this->goal = $goal;
-        $this->backstory = $backstory;
-        $this->llm = $llm;
-        $this->memory = $memory ?? new ArrayMemory();
+    public function __construct(private readonly string $name, private readonly string $role, private readonly string $goal, private readonly string $backstory = '', private ?LLMInterface $llm = null, private MemoryInterface $memory = new ArrayMemory())
+    {
     }
 
     /**
      * Create a new Agent builder.
-     *
-     * @return AgentBuilder
      */
     public static function create(): AgentBuilder
     {
@@ -106,9 +62,10 @@ class Agent implements AgentInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function run(string $task, array $context = []): AgentResponseInterface
     {
-        if (!$this->llm) {
+        if (!$this->llm instanceof \PhpSwarm\Contract\LLM\LLMInterface) {
             throw new AgentException('No LLM has been set for this agent.');
         }
 
@@ -119,11 +76,11 @@ class Agent implements AgentInterface
         $systemPrompt = "You are {$this->name}, a {$this->role}.\n";
         $systemPrompt .= "Your goal is: {$this->goal}\n";
         
-        if (!empty($this->backstory)) {
+        if ($this->backstory !== '' && $this->backstory !== '0') {
             $systemPrompt .= "Backstory: {$this->backstory}\n";
         }
         
-        if (!empty($this->tools)) {
+        if ($this->tools !== []) {
             $systemPrompt .= "\nYou have the following tools available:\n";
             foreach ($this->tools as $tool) {
                 $systemPrompt .= "- " . $tool->getName() . ": " . $tool->getDescription() . "\n";
@@ -154,7 +111,7 @@ class Agent implements AgentInterface
             try {
                 $this->llm->stream(
                     $messages, 
-                    function($chunk) use (&$finalContent, $context) {
+                    function($chunk) use (&$finalContent, $context): void {
                         // Add to the final content
                         if (isset($chunk['message']['content'])) {
                             $finalContent .= $chunk['message']['content'];
@@ -257,6 +214,7 @@ class Agent implements AgentInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getName(): string
     {
         return $this->name;
@@ -265,6 +223,7 @@ class Agent implements AgentInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getRole(): string
     {
         return $this->role;
@@ -273,6 +232,7 @@ class Agent implements AgentInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getGoal(): string
     {
         return $this->goal;
@@ -281,6 +241,7 @@ class Agent implements AgentInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getBackstory(): string
     {
         return $this->backstory;
@@ -289,6 +250,7 @@ class Agent implements AgentInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getTools(): array
     {
         return $this->tools;
@@ -297,6 +259,7 @@ class Agent implements AgentInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function addTool(ToolInterface $tool): self
     {
         $this->tools[] = $tool;
@@ -306,6 +269,7 @@ class Agent implements AgentInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function withLLM(LLMInterface $llm): self
     {
         $this->llm = $llm;
@@ -315,6 +279,7 @@ class Agent implements AgentInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function withMemory(MemoryInterface $memory): self
     {
         $this->memory = $memory;
@@ -324,6 +289,7 @@ class Agent implements AgentInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function withVerboseLogging(bool $verbose = true): self
     {
         $this->verboseLogging = $verbose;
@@ -333,6 +299,7 @@ class Agent implements AgentInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function allowDelegation(bool $allowDelegation = true): self
     {
         $this->allowDelegation = $allowDelegation;
@@ -341,9 +308,6 @@ class Agent implements AgentInterface
 
     /**
      * Set the maximum number of iterations for the agent to run.
-     *
-     * @param int $maxIterations
-     * @return self
      */
     public function withMaxIterations(int $maxIterations): self
     {
@@ -353,8 +317,6 @@ class Agent implements AgentInterface
 
     /**
      * Get the LLM used by this agent.
-     *
-     * @return LLMInterface|null
      */
     public function getLLM(): ?LLMInterface
     {
@@ -363,8 +325,6 @@ class Agent implements AgentInterface
 
     /**
      * Get the memory system used by this agent.
-     *
-     * @return MemoryInterface
      */
     public function getMemory(): MemoryInterface
     {
@@ -373,8 +333,6 @@ class Agent implements AgentInterface
 
     /**
      * Check if verbose logging is enabled.
-     *
-     * @return bool
      */
     public function isVerboseLoggingEnabled(): bool
     {
@@ -383,8 +341,6 @@ class Agent implements AgentInterface
 
     /**
      * Check if task delegation is allowed.
-     *
-     * @return bool
      */
     public function isDelegationAllowed(): bool
     {
@@ -393,8 +349,6 @@ class Agent implements AgentInterface
 
     /**
      * Get the maximum number of iterations.
-     *
-     * @return int
      */
     public function getMaxIterations(): int
     {

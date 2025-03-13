@@ -61,7 +61,6 @@ interface SecurityManagerInterface
      * @param string $event The security event description
      * @param string $level The severity level (info, warning, error, critical)
      * @param array<string, mixed> $context Additional context
-     * @return void
      */
     public function logSecurityEvent(string $event, string $level, array $context = []): void;
 
@@ -76,7 +75,6 @@ interface SecurityManagerInterface
      * Configure security settings.
      *
      * @param array<string, mixed> $settings The security settings
-     * @return void
      */
     public function configure(array $settings): void;
 }

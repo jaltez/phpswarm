@@ -19,6 +19,7 @@ class ArrayCache implements CacheInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function get(string $key, mixed $default = null): mixed
     {
         if (!$this->has($key)) {
@@ -31,6 +32,7 @@ class ArrayCache implements CacheInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function set(string $key, mixed $value, ?int $ttl = null): bool
     {
         $expires = $ttl === null ? null : time() + $ttl;
@@ -46,6 +48,7 @@ class ArrayCache implements CacheInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function has(string $key): bool
     {
         if (!isset($this->cache[$key])) {
@@ -66,6 +69,7 @@ class ArrayCache implements CacheInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function delete(string $key): bool
     {
         if (isset($this->cache[$key])) {
@@ -79,6 +83,7 @@ class ArrayCache implements CacheInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function clear(): bool
     {
         $this->cache = [];
@@ -88,6 +93,7 @@ class ArrayCache implements CacheInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getMultiple(array $keys, mixed $default = null): array
     {
         $result = [];
@@ -102,6 +108,7 @@ class ArrayCache implements CacheInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function setMultiple(array $values, ?int $ttl = null): bool
     {
         foreach ($values as $key => $value) {
@@ -114,6 +121,7 @@ class ArrayCache implements CacheInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function deleteMultiple(array $keys): bool
     {
         foreach ($keys as $key) {

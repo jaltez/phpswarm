@@ -18,7 +18,6 @@ interface MemoryInterface
      * @param string $key The key for the memory
      * @param mixed $value The value to store
      * @param array<string, mixed> $metadata Additional metadata for the memory
-     * @return void
      */
     public function add(string $key, mixed $value, array $metadata = []): void;
 
@@ -57,8 +56,6 @@ interface MemoryInterface
 
     /**
      * Clear all memories.
-     *
-     * @return void
      */
     public function clear(): void;
 
@@ -71,8 +68,6 @@ interface MemoryInterface
 
     /**
      * Get the size of the memory storage.
-     *
-     * @return int
      */
     public function size(): int;
 

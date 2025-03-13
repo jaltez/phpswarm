@@ -12,11 +12,6 @@ use PhpSwarm\Contract\LLM\LLMResponseInterface;
 class OllamaResponse implements LLMResponseInterface
 {
     /**
-     * @var array<string, mixed> The raw response data from Ollama
-     */
-    private array $rawResponse;
-
-    /**
      * @var string The content/text of the response
      */
     private string $content;
@@ -61,9 +56,8 @@ class OllamaResponse implements LLMResponseInterface
      *
      * @param array<string, mixed> $rawResponse
      */
-    public function __construct(array $rawResponse)
+    public function __construct(private array $rawResponse)
     {
-        $this->rawResponse = $rawResponse;
         $this->parseResponse();
     }
 
@@ -122,9 +116,8 @@ class OllamaResponse implements LLMResponseInterface
 
     /**
      * Get the main text/content of the response.
-     *
-     * @return string
      */
+    #[\Override]
     public function getContent(): string
     {
         return $this->content;
@@ -135,6 +128,7 @@ class OllamaResponse implements LLMResponseInterface
      *
      * @return array<string, mixed>
      */
+    #[\Override]
     public function getRawResponse(): array
     {
         return $this->rawResponse;
@@ -145,6 +139,7 @@ class OllamaResponse implements LLMResponseInterface
      *
      * @return array<array<string, mixed>>
      */
+    #[\Override]
     public function getToolCalls(): array
     {
         return $this->toolCalls;
@@ -152,19 +147,17 @@ class OllamaResponse implements LLMResponseInterface
 
     /**
      * Get whether the response contains tool calls.
-     *
-     * @return bool
      */
+    #[\Override]
     public function hasToolCalls(): bool
     {
-        return !empty($this->toolCalls);
+        return $this->toolCalls !== [];
     }
 
     /**
      * Get the number of prompt tokens used.
-     *
-     * @return int|null
      */
+    #[\Override]
     public function getPromptTokens(): ?int
     {
         return $this->promptTokens;
@@ -172,9 +165,8 @@ class OllamaResponse implements LLMResponseInterface
 
     /**
      * Get the number of completion tokens used.
-     *
-     * @return int|null
      */
+    #[\Override]
     public function getCompletionTokens(): ?int
     {
         return $this->completionTokens;
@@ -182,9 +174,8 @@ class OllamaResponse implements LLMResponseInterface
 
     /**
      * Get the total number of tokens used.
-     *
-     * @return int|null
      */
+    #[\Override]
     public function getTotalTokens(): ?int
     {
         return $this->totalTokens;
@@ -192,9 +183,8 @@ class OllamaResponse implements LLMResponseInterface
 
     /**
      * Get the model used for this response.
-     *
-     * @return string
      */
+    #[\Override]
     public function getModel(): string
     {
         return $this->model;
@@ -205,6 +195,7 @@ class OllamaResponse implements LLMResponseInterface
      *
      * @return array<string, mixed>
      */
+    #[\Override]
     public function getMetadata(): array
     {
         return $this->metadata;
@@ -212,9 +203,8 @@ class OllamaResponse implements LLMResponseInterface
 
     /**
      * Get the finish reason provided by the LLM.
-     *
-     * @return string|null
      */
+    #[\Override]
     public function getFinishReason(): ?string
     {
         return $this->finishReason;
@@ -222,10 +212,6 @@ class OllamaResponse implements LLMResponseInterface
 
     /**
      * Add additional metadata to the response.
-     *
-     * @param string $key
-     * @param mixed $value
-     * @return self
      */
     public function addMetadata(string $key, mixed $value): self
     {

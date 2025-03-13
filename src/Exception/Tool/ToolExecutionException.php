@@ -12,11 +12,6 @@ use PhpSwarm\Exception\PhpSwarmException;
 class ToolExecutionException extends PhpSwarmException
 {
     /**
-     * @var string|null The name of the tool that caused the exception
-     */
-    private ?string $toolName;
-
-    /**
      * Create a new ToolExecutionException.
      *
      * @param string $message The exception message
@@ -28,11 +23,9 @@ class ToolExecutionException extends PhpSwarmException
         string $message,
         int $code = 0,
         ?\Throwable $previous = null,
-        ?string $toolName = null
+        private ?string $toolName = null
     ) {
         parent::__construct($message, $code, $previous);
-
-        $this->toolName = $toolName;
     }
 
     /**
@@ -49,7 +42,6 @@ class ToolExecutionException extends PhpSwarmException
      * Set the name of the tool that caused the exception.
      *
      * @param string $toolName The tool name
-     * @return self
      */
     public function setToolName(string $toolName): self
     {

@@ -18,22 +18,22 @@ class OllamaConnector implements LLMInterface
     /**
      * @var string Default model to use
      */
-    private string $defaultModel;
+    private readonly string $defaultModel;
 
     /**
      * @var string Base URL for the Ollama API
      */
-    private string $baseUrl;
+    private readonly string $baseUrl;
 
     /**
      * @var Client HTTP client
      */
-    private Client $client;
+    private readonly Client $client;
 
     /**
      * @var array<string, mixed> Default request options
      */
-    private array $defaultOptions;
+    private readonly array $defaultOptions;
 
     /**
      * @var array<string, int> Token limits per model
@@ -79,6 +79,7 @@ class OllamaConnector implements LLMInterface
      * @return LLMResponseInterface The response from the LLM
      * @throws LLMException if the API call fails
      */
+    #[\Override]
     public function chat(array $messages, array $options = []): LLMResponseInterface
     {
         $options = $this->prepareOptions($options);
@@ -123,6 +124,7 @@ class OllamaConnector implements LLMInterface
      * @return LLMResponseInterface The response from the LLM
      * @throws LLMException if the API call fails
      */
+    #[\Override]
     public function complete(string $prompt, array $options = []): LLMResponseInterface
     {
         $options = $this->prepareOptions($options);
@@ -165,9 +167,9 @@ class OllamaConnector implements LLMInterface
      * @param array<array<string, string>> $messages The messages to send
      * @param callable $callback The callback to handle each chunk
      * @param array<string, mixed> $options Additional options for the request
-     * @return void
      * @throws LLMException if the API call fails
      */
+    #[\Override]
     public function stream(array $messages, callable $callback, array $options = []): void
     {
         $options = $this->prepareOptions($options);
@@ -190,7 +192,7 @@ class OllamaConnector implements LLMInterface
             $response = $this->client->post('/api/chat', [
                 'json' => $payload,
                 'stream' => true,
-                'on_headers' => function ($response) {
+                'on_headers' => function ($response): void {
                     if ($response->getStatusCode() !== 200) {
                         throw new LLMException('Ollama API error: ' . $response->getBody()->getContents());
                     }
@@ -200,16 +202,21 @@ class OllamaConnector implements LLMInterface
             $body = $response->getBody();
             while (!$body->eof()) {
                 $line = $body->read(1024);
-                if (empty($line)) {
+                if ($line === '') {
+                    continue;
+                }
+                if ($line === '0') {
                     continue;
                 }
 
                 $chunks = explode("\n", $line);
                 foreach ($chunks as $chunk) {
-                    if (empty($chunk)) {
+                    if ($chunk === '') {
                         continue;
                     }
-
+                    if ($chunk === '0') {
+                        continue;
+                    }
                     $data = json_decode($chunk, true);
                     if (json_last_error() !== JSON_ERROR_NONE) {
                         continue;
@@ -230,6 +237,7 @@ class OllamaConnector implements LLMInterface
      * @param string|array<mixed> $input The input to count tokens for
      * @return int The estimated number of tokens
      */
+    #[\Override]
     public function getTokenCount(string|array $input): int
     {
         // Convert array to string if needed
@@ -252,9 +260,8 @@ class OllamaConnector implements LLMInterface
 
     /**
      * Get the default model name used by this connector.
-     *
-     * @return string
      */
+    #[\Override]
     public function getDefaultModel(): string
     {
         return $this->defaultModel;
@@ -262,9 +269,8 @@ class OllamaConnector implements LLMInterface
 
     /**
      * Get the name of the provider.
-     *
-     * @return string
      */
+    #[\Override]
     public function getProviderName(): string
     {
         return 'Ollama';
@@ -272,9 +278,8 @@ class OllamaConnector implements LLMInterface
 
     /**
      * Get whether this connector supports function calling.
-     *
-     * @return bool
      */
+    #[\Override]
     public function supportsFunctionCalling(): bool
     {
         return false; // Ollama doesn't support function calling in the same way as OpenAI
@@ -282,9 +287,8 @@ class OllamaConnector implements LLMInterface
 
     /**
      * Get whether this connector supports streaming.
-     *
-     * @return bool
      */
+    #[\Override]
     public function supportsStreaming(): bool
     {
         return true;
@@ -292,9 +296,8 @@ class OllamaConnector implements LLMInterface
 
     /**
      * Get the maximum context length supported by the default model.
-     *
-     * @return int
      */
+    #[\Override]
     public function getMaxContextLength(): int
     {
         return $this->tokenLimits[$this->defaultModel] ?? 4096;

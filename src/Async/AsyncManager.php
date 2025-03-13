@@ -115,7 +115,7 @@ class AsyncManager
         $results = [];
         $pendingIds = $ids;
 
-        while (!empty($pendingIds)) {
+        while ($pendingIds !== []) {
             if ($timeout !== null && (time() - $startTime) >= $timeout) {
                 throw new AsyncOperationException('Operations timed out');
             }
@@ -142,7 +142,7 @@ class AsyncManager
                 }
             }
 
-            if (!empty($pendingIds)) {
+            if ($pendingIds !== []) {
                 // Sleep for a short time to avoid CPU spinning
                 usleep(10000); // 10ms
             }

@@ -18,32 +18,32 @@ class AnthropicConnectorConnector implements LLMInterface
     /**
      * @var Client The HTTP client
      */
-    private Client $client;
+    private readonly Client $client;
 
     /**
      * @var string The API key
      */
-    private string $apiKey;
+    private readonly string $apiKey;
 
     /**
      * @var string The default model to use
      */
-    private string $defaultModel;
+    private readonly string $defaultModel;
 
     /**
      * @var float The default temperature
      */
-    private float $defaultTemperature;
+    private readonly float $defaultTemperature;
 
     /**
      * @var int|null The default maximum tokens
      */
-    private ?int $defaultMaxTokens;
+    private readonly ?int $defaultMaxTokens;
 
     /**
      * @var string The API base URL
      */
-    private string $apiBaseUrl;
+    private readonly string $apiBaseUrl;
 
     /**
      * Create a new AnthropicConnectorConnector instance
@@ -87,6 +87,7 @@ class AnthropicConnectorConnector implements LLMInterface
      * @return LLMResponseInterface The response from the LLM
      * @throws LLMException If the request fails
      */
+    #[\Override]
     public function chat(array $messages, array $options = []): LLMResponseInterface
     {
         try {
@@ -127,6 +128,7 @@ class AnthropicConnectorConnector implements LLMInterface
      * @return LLMResponseInterface The response from the LLM
      * @throws LLMException If the request fails
      */
+    #[\Override]
     public function complete(string $prompt, array $options = []): LLMResponseInterface
     {
         // Convert the prompt to a chat message and use the chat endpoint
@@ -141,9 +143,9 @@ class AnthropicConnectorConnector implements LLMInterface
      * @param array<array<string, string>> $messages The messages to send
      * @param callable $callback The callback to handle each chunk
      * @param array<string, mixed> $options Additional options for the request
-     * @return void
      * @throws LLMException If the request fails
      */
+    #[\Override]
     public function stream(array $messages, callable $callback, array $options = []): void
     {
         try {
@@ -174,8 +176,10 @@ class AnthropicConnectorConnector implements LLMInterface
 
             while (!$body->eof()) {
                 $line = $this->readLine($body);
-
-                if (empty($line)) {
+                if ($line === '') {
+                    continue;
+                }
+                if ($line === '0') {
                     continue;
                 }
 
@@ -183,7 +187,7 @@ class AnthropicConnectorConnector implements LLMInterface
                     break;
                 }
 
-                if (strpos($line, 'data: ') === 0) {
+                if (str_starts_with($line, 'data: ')) {
                     $data = json_decode(substr($line, 6), true);
 
                     if (json_last_error() === JSON_ERROR_NONE && isset($data['choices'][0])) {
@@ -203,7 +207,7 @@ class AnthropicConnectorConnector implements LLMInterface
      * @param \Psr\Http\Message\StreamInterface $stream The stream to read from
      * @return string The line read from the stream
      */
-    private function readLine($stream): string
+    private function readLine(\Psr\Http\Message\StreamInterface $stream): string
     {
         $buffer = '';
         while (!$stream->eof()) {
@@ -222,6 +226,7 @@ class AnthropicConnectorConnector implements LLMInterface
      * @param string|array<mixed> $input The input to count tokens for
      * @return int The number of tokens
      */
+    #[\Override]
     public function getTokenCount(string|array $input): int
     {
         // Implement a token counting algorithm or call an API
@@ -230,25 +235,19 @@ class AnthropicConnectorConnector implements LLMInterface
             // Roughly 4 characters per token for English text
             return (int) ceil(mb_strlen($input) / 4);
         }
-
-        if (is_array($input)) {
-            $count = 0;
-            foreach ($input as $message) {
-                if (isset($message['content']) && is_string($message['content'])) {
-                    $count += (int) ceil(mb_strlen($message['content']) / 4);
-                }
+        $count = 0;
+        foreach ($input as $message) {
+            if (isset($message['content']) && is_string($message['content'])) {
+                $count += (int) ceil(mb_strlen($message['content']) / 4);
             }
-            return $count;
         }
-
-        return 0;
+        return $count;
     }
 
     /**
      * Get the default model name used by this connector
-     *
-     * @return string
      */
+    #[\Override]
     public function getDefaultModel(): string
     {
         return $this->defaultModel;
@@ -256,9 +255,8 @@ class AnthropicConnectorConnector implements LLMInterface
 
     /**
      * Get the name of the provider
-     *
-     * @return string
      */
+    #[\Override]
     public function getProviderName(): string
     {
         return 'AnthropicConnector';
@@ -266,9 +264,8 @@ class AnthropicConnectorConnector implements LLMInterface
 
     /**
      * Get whether this connector supports function calling
-     *
-     * @return bool
      */
+    #[\Override]
     public function supportsFunctionCalling(): bool
     {
         return true;
@@ -276,9 +273,8 @@ class AnthropicConnectorConnector implements LLMInterface
 
     /**
      * Get whether this connector supports streaming
-     *
-     * @return bool
      */
+    #[\Override]
     public function supportsStreaming(): bool
     {
         return true;
@@ -286,9 +282,8 @@ class AnthropicConnectorConnector implements LLMInterface
 
     /**
      * Get the maximum context length supported by the default model
-     *
-     * @return int
      */
+    #[\Override]
     public function getMaxContextLength(): int
     {
         // Update this based on the actual model limits

@@ -33,23 +33,18 @@ class PerformanceMonitor implements MonitorInterface
     private array $completedProcesses = [];
 
     /**
-     * @var LoggerInterface|null Logger for recording events
-     */
-    private ?LoggerInterface $logger;
-
-    /**
      * Create a new PerformanceMonitor instance.
      *
      * @param LoggerInterface|null $logger Optional logger to record events
      */
-    public function __construct(?LoggerInterface $logger = null)
+    public function __construct(private readonly ?LoggerInterface $logger = null)
     {
-        $this->logger = $logger;
     }
 
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function startTimer(string $operation, array $context = []): string
     {
         $timerId = uniqid('timer_', true);
@@ -60,7 +55,7 @@ class PerformanceMonitor implements MonitorInterface
             'context' => $context,
         ];
 
-        if ($this->logger) {
+        if ($this->logger instanceof \PhpSwarm\Contract\Logger\LoggerInterface) {
             $this->logger->debug("Started timer for '$operation'", ['timer_id' => $timerId] + $context);
         }
 
@@ -70,6 +65,7 @@ class PerformanceMonitor implements MonitorInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function stopTimer(string $timerId, array $context = []): float
     {
         if (!isset($this->timers[$timerId])) {
@@ -113,7 +109,7 @@ class PerformanceMonitor implements MonitorInterface
         }
 
         // Log the result
-        if ($this->logger) {
+        if ($this->logger instanceof \PhpSwarm\Contract\Logger\LoggerInterface) {
             $this->logger->debug(
                 "Stopped timer for '$operation': {$elapsed}s",
                 ['timer_id' => $timerId, 'duration' => $elapsed] + $context
@@ -129,11 +125,12 @@ class PerformanceMonitor implements MonitorInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function recordMetric(string $name, mixed $value, array $context = []): void
     {
         $this->metrics[$name] = $value;
 
-        if ($this->logger) {
+        if ($this->logger instanceof \PhpSwarm\Contract\Logger\LoggerInterface) {
             $this->logger->debug("Recorded metric '$name'", ['value' => $value] + $context);
         }
     }
@@ -141,6 +138,7 @@ class PerformanceMonitor implements MonitorInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function incrementCounter(string $name, int $increment = 1, array $context = []): int
     {
         if (!isset($this->metrics[$name])) {
@@ -151,7 +149,7 @@ class PerformanceMonitor implements MonitorInterface
 
         $this->metrics[$name] += $increment;
 
-        if ($this->logger) {
+        if ($this->logger instanceof \PhpSwarm\Contract\Logger\LoggerInterface) {
             $this->logger->debug(
                 "Incremented counter '$name' by $increment",
                 ['value' => $this->metrics[$name]] + $context
@@ -164,6 +162,7 @@ class PerformanceMonitor implements MonitorInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function beginProcess(string $processName, array $context = []): string
     {
         $processId = uniqid('process_', true);
@@ -180,7 +179,7 @@ class PerformanceMonitor implements MonitorInterface
         $this->incrementCounter('process_count.total');
         $this->incrementCounter('process_active');
 
-        if ($this->logger) {
+        if ($this->logger instanceof \PhpSwarm\Contract\Logger\LoggerInterface) {
             $this->logger->info("Started process '$processName'", ['process_id' => $processId] + $context);
         }
 
@@ -190,6 +189,7 @@ class PerformanceMonitor implements MonitorInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function endProcess(string $processId, array $context = []): void
     {
         if (!isset($this->processes[$processId])) {
@@ -236,7 +236,7 @@ class PerformanceMonitor implements MonitorInterface
             $this->metrics["process_completed_count.$processName"] = $count + 1;
         }
 
-        if ($this->logger) {
+        if ($this->logger instanceof \PhpSwarm\Contract\Logger\LoggerInterface) {
             $this->logger->info(
                 "Completed process '$processName' in {$duration}s",
                 ['process_id' => $processId, 'duration' => $duration] + $context
@@ -250,6 +250,7 @@ class PerformanceMonitor implements MonitorInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function failProcess(string $processId, string $reason, array $context = []): void
     {
         if (!isset($this->processes[$processId])) {
@@ -283,7 +284,7 @@ class PerformanceMonitor implements MonitorInterface
         $totalCount = $this->metrics["process_count.$processName"] ?? 1;
         $this->metrics["process_failure_rate.$processName"] = $failureCount / $totalCount;
 
-        if ($this->logger) {
+        if ($this->logger instanceof \PhpSwarm\Contract\Logger\LoggerInterface) {
             $this->logger->error(
                 "Failed process '$processName' after {$duration}s: $reason",
                 ['process_id' => $processId, 'duration' => $duration, 'reason' => $reason] + $context
@@ -297,6 +298,7 @@ class PerformanceMonitor implements MonitorInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getMetrics(): array
     {
         return $this->metrics;
@@ -305,6 +307,7 @@ class PerformanceMonitor implements MonitorInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getMetric(string $name): mixed
     {
         return $this->metrics[$name] ?? null;
@@ -313,6 +316,7 @@ class PerformanceMonitor implements MonitorInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function clearMetrics(): void
     {
         $this->metrics = [];
@@ -320,7 +324,7 @@ class PerformanceMonitor implements MonitorInterface
         $this->processes = [];
         $this->completedProcesses = [];
 
-        if ($this->logger) {
+        if ($this->logger instanceof \PhpSwarm\Contract\Logger\LoggerInterface) {
             $this->logger->debug('Cleared all metrics');
         }
     }
@@ -365,7 +369,7 @@ class PerformanceMonitor implements MonitorInterface
     {
         return array_filter(
             $this->completedProcesses,
-            fn($process) => $process['name'] === $processName
+            fn($process): bool => $process['name'] === $processName
         );
     }
 }

@@ -25,12 +25,12 @@ class SqliteMemory implements MemoryInterface
     /**
      * @var string The memory table name
      */
-    private string $tableName;
+    private readonly string $tableName;
 
     /**
      * @var int|null The TTL (time-to-live) in seconds for memory entries
      */
-    private ?int $ttl;
+    private readonly ?int $ttl;
 
     /**
      * Create a new SqliteMemory instance.
@@ -83,6 +83,7 @@ class SqliteMemory implements MemoryInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function add(string $key, mixed $value, array $metadata = []): void
     {
         $timestamp = new DateTimeImmutable();
@@ -118,6 +119,7 @@ class SqliteMemory implements MemoryInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function get(string $key): mixed
     {
         try {
@@ -150,6 +152,7 @@ class SqliteMemory implements MemoryInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function has(string $key): bool
     {
         try {
@@ -182,6 +185,7 @@ class SqliteMemory implements MemoryInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function delete(string $key): bool
     {
         try {
@@ -202,6 +206,7 @@ class SqliteMemory implements MemoryInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function search(string $query, int $limit = 5): array
     {
         try {
@@ -238,6 +243,7 @@ class SqliteMemory implements MemoryInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function clear(): void
     {
         try {
@@ -250,6 +256,7 @@ class SqliteMemory implements MemoryInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function all(): array
     {
         try {
@@ -279,6 +286,7 @@ class SqliteMemory implements MemoryInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function size(): int
     {
         try {
@@ -297,6 +305,7 @@ class SqliteMemory implements MemoryInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getHistory(int $limit = 10, int $offset = 0): array
     {
         try {
@@ -323,7 +332,7 @@ class SqliteMemory implements MemoryInterface
 
                 $history[$row['key']] = [
                     'value' => unserialize($row['value']),
-                    'metadata' => json_decode($row['metadata'], true) ?: [],
+                    'metadata' => json_decode((string) $row['metadata'], true) ?: [],
                     'timestamp' => $timestamp,
                 ];
             }
@@ -364,7 +373,7 @@ class SqliteMemory implements MemoryInterface
                 return null;
             }
 
-            return json_decode($result['metadata'], true) ?: [];
+            return json_decode((string) $result['metadata'], true) ?: [];
         } catch (PDOException $e) {
             throw new MemoryException('Failed to retrieve metadata: ' . $e->getMessage(), 0, $e);
         }

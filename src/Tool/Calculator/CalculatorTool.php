@@ -37,6 +37,7 @@ class CalculatorTool extends BaseTool
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function run(array $parameters = []): mixed
     {
         $this->validateParameters($parameters);
@@ -63,8 +64,6 @@ class CalculatorTool extends BaseTool
     /**
      * Sanitize the expression to prevent code injection.
      *
-     * @param string $expression
-     * @return string
      * @throws ToolExecutionException If the expression contains invalid characters
      */
     private function sanitizeExpression(string $expression): string
@@ -87,8 +86,6 @@ class CalculatorTool extends BaseTool
     /**
      * Safely evaluate the mathematical expression.
      *
-     * @param string $expression
-     * @return float
      * @throws ToolExecutionException If the expression cannot be evaluated
      */
     private function evaluate(string $expression): float

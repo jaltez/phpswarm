@@ -19,6 +19,7 @@ class MakeWorkflowCommand extends Command
     /**
      * Configure the command
      */
+    #[\Override]
     protected function configure(): void
     {
         $this
@@ -33,6 +34,7 @@ class MakeWorkflowCommand extends Command
     /**
      * Execute the command
      */
+    #[\Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
@@ -111,7 +113,7 @@ class MakeWorkflowCommand extends Command
      */
     private function parseSteps(string $stepsString): array
     {
-        if (empty($stepsString)) {
+        if ($stepsString === '' || $stepsString === '0') {
             return [];
         }
 
@@ -120,7 +122,7 @@ class MakeWorkflowCommand extends Command
 
         foreach ($stepList as $step) {
             $step = trim($step);
-            if (!empty($step)) {
+            if ($step !== '' && $step !== '0') {
                 $steps[] = $step;
             }
         }
@@ -259,7 +261,7 @@ PHP;
         $name = preg_replace('/Workflow$/', '', $className);
 
         // Add spaces before capital letters and trim
-        return trim(preg_replace('/(?<!^)[A-Z]/', ' $0', $name));
+        return trim((string) preg_replace('/(?<!^)[A-Z]/', ' $0', (string) $name));
     }
 
     /**
@@ -267,7 +269,7 @@ PHP;
      */
     private function generateStepDefinitions(array $steps): string
     {
-        if (empty($steps)) {
+        if ($steps === []) {
             $steps = ['Step1', 'Step2'];
         }
 
@@ -323,7 +325,7 @@ PHP;
      */
     private function generateStepRegistrations(array $steps): string
     {
-        if (empty($steps)) {
+        if ($steps === []) {
             $steps = ['Step1', 'Step2'];
         }
 

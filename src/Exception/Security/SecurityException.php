@@ -16,7 +16,6 @@ class SecurityException extends PhpSwarmException
      *
      * @param string $input The input that failed validation
      * @param string|null $reason Optional reason for the failure
-     * @return self
      */
     public static function invalidInput(string $input, ?string $reason = null): self
     {
@@ -34,7 +33,6 @@ class SecurityException extends PhpSwarmException
      * @param string $path The path that was determined to be unsafe
      * @param string $operation The operation that was attempted (read, write, execute)
      * @param string|null $reason Optional reason for the failure
-     * @return self
      */
     public static function unsafePath(string $path, string $operation, ?string $reason = null): self
     {
@@ -51,7 +49,6 @@ class SecurityException extends PhpSwarmException
      *
      * @param string $prompt The prompt that was flagged for potential injection
      * @param string|null $pattern The pattern that was matched
-     * @return self
      */
     public static function promptInjectionDetected(string $prompt, ?string $pattern = null): self
     {
@@ -68,7 +65,6 @@ class SecurityException extends PhpSwarmException
      *
      * @param string $command The command that was determined to be unsafe
      * @param string|null $reason Optional reason for the failure
-     * @return self
      */
     public static function unsafeCommand(string $command, ?string $reason = null): self
     {
@@ -85,7 +81,6 @@ class SecurityException extends PhpSwarmException
      *
      * @param string $context The context in which authentication failed
      * @param string|null $reason Optional reason for the failure
-     * @return self
      */
     public static function authenticationFailure(string $context, ?string $reason = null): self
     {
@@ -102,7 +97,6 @@ class SecurityException extends PhpSwarmException
      *
      * @param string $context The context in which authorization failed
      * @param string|null $reason Optional reason for the failure
-     * @return self
      */
     public static function authorizationFailure(string $context, ?string $reason = null): self
     {

@@ -16,10 +16,7 @@ use Symfony\Component\Console\Application as SymfonyApplication;
  */
 class Application extends SymfonyApplication
 {
-    /**
-     * @var PhpSwarmConfig|null
-     */
-    private ?PhpSwarmConfig $config;
+    private readonly ?PhpSwarmConfig $config;
 
     /**
      * Create a new PHPSwarm CLI application.

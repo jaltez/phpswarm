@@ -12,11 +12,6 @@ use PhpSwarm\Contract\LLM\LLMResponseInterface;
 class AnthropicResponse implements LLMResponseInterface
 {
     /**
-     * @var array<string, mixed> The raw response data from Anthropic
-     */
-    private array $rawResponse;
-
-    /**
      * @var string The content/text of the response
      */
     private string $content;
@@ -61,16 +56,13 @@ class AnthropicResponse implements LLMResponseInterface
      *
      * @param array<string, mixed> $rawResponse The raw response data from Anthropic
      */
-    public function __construct(array $rawResponse)
+    public function __construct(private array $rawResponse)
     {
-        $this->rawResponse = $rawResponse;
         $this->parseResponse();
     }
 
     /**
      * Parse the raw response to extract relevant data.
-     *
-     * @return void
      */
     private function parseResponse(): void
     {
@@ -99,7 +91,7 @@ class AnthropicResponse implements LLMResponseInterface
         if (isset($this->rawResponse['usage']) && is_array($this->rawResponse['usage'])) {
             $this->promptTokens = $this->rawResponse['usage']['input_tokens'] ?? null;
             $this->completionTokens = $this->rawResponse['usage']['output_tokens'] ?? null;
-            $this->totalTokens = isset($this->promptTokens, $this->completionTokens)
+            $this->totalTokens = $this->promptTokens !== null && $this->completionTokens !== null
                 ? $this->promptTokens + $this->completionTokens
                 : null;
         }
@@ -111,6 +103,7 @@ class AnthropicResponse implements LLMResponseInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getContent(): string
     {
         return $this->content;
@@ -119,6 +112,7 @@ class AnthropicResponse implements LLMResponseInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getRawResponse(): array
     {
         return $this->rawResponse;
@@ -127,6 +121,7 @@ class AnthropicResponse implements LLMResponseInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getToolCalls(): array
     {
         return $this->toolCalls;
@@ -135,14 +130,16 @@ class AnthropicResponse implements LLMResponseInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function hasToolCalls(): bool
     {
-        return !empty($this->toolCalls);
+        return $this->toolCalls !== [];
     }
 
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getPromptTokens(): ?int
     {
         return $this->promptTokens;
@@ -151,6 +148,7 @@ class AnthropicResponse implements LLMResponseInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getCompletionTokens(): ?int
     {
         return $this->completionTokens;
@@ -159,6 +157,7 @@ class AnthropicResponse implements LLMResponseInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getTotalTokens(): ?int
     {
         return $this->totalTokens;
@@ -167,6 +166,7 @@ class AnthropicResponse implements LLMResponseInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getModel(): string
     {
         return $this->model;
@@ -175,6 +175,7 @@ class AnthropicResponse implements LLMResponseInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getMetadata(): array
     {
         return $this->metadata;
@@ -183,6 +184,7 @@ class AnthropicResponse implements LLMResponseInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getFinishReason(): ?string
     {
         return $this->finishReason;
@@ -190,10 +192,6 @@ class AnthropicResponse implements LLMResponseInterface
 
     /**
      * Add metadata to the response.
-     *
-     * @param string $key
-     * @param mixed $value
-     * @return self
      */
     public function addMetadata(string $key, mixed $value): self
     {

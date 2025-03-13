@@ -16,14 +16,8 @@ use Symfony\Component\Filesystem\Filesystem;
  */
 abstract class AbstractMakeCommand extends Command
 {
-    /**
-     * @var Filesystem
-     */
     protected Filesystem $filesystem;
 
-    /**
-     * @var PhpSwarmConfig|null
-     */
     protected ?PhpSwarmConfig $config;
 
     /**
@@ -39,6 +33,7 @@ abstract class AbstractMakeCommand extends Command
     /**
      * Execute the command.
      */
+    #[\Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);

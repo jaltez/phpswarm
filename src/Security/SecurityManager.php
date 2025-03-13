@@ -19,11 +19,6 @@ class SecurityManager implements SecurityManagerInterface
     private array $settings;
 
     /**
-     * @var LoggerInterface|null Logger for security events
-     */
-    private ?LoggerInterface $logger;
-
-    /**
      * @var array<string> Allowed paths for file operations
      */
     private array $allowedPaths = [];
@@ -54,7 +49,7 @@ class SecurityManager implements SecurityManagerInterface
      * @param array<string, mixed> $settings The security settings
      * @param LoggerInterface|null $logger Optional logger for security events
      */
-    public function __construct(array $settings = [], ?LoggerInterface $logger = null)
+    public function __construct(array $settings = [], private readonly ?LoggerInterface $logger = null)
     {
         $defaultSettings = [
             'validate_inputs' => true,
@@ -72,7 +67,6 @@ class SecurityManager implements SecurityManagerInterface
         ];
 
         $this->settings = array_merge($defaultSettings, $settings);
-        $this->logger = $logger;
 
         $this->allowedPaths = $this->settings['allowed_paths'];
         $this->disallowedPaths = $this->settings['disallowed_paths'];
@@ -86,6 +80,7 @@ class SecurityManager implements SecurityManagerInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function validateInput(string $input, array $context = []): bool
     {
         if (!$this->settings['validate_inputs']) {
@@ -138,6 +133,7 @@ class SecurityManager implements SecurityManagerInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function isPathSafe(string $path, string $operation, array $context = []): bool
     {
         if (!$this->settings['check_path_safety']) {
@@ -147,7 +143,7 @@ class SecurityManager implements SecurityManagerInterface
         $realPath = realpath($path) ?: $path;
 
         // Check for directory traversal attempts
-        if (strpos($path, '../') !== false || strpos($path, '..\\') !== false) {
+        if (str_contains($path, '../') || str_contains($path, '..\\')) {
             $this->logSecurityEvent(
                 'Directory traversal attempt detected',
                 'warning',
@@ -161,11 +157,11 @@ class SecurityManager implements SecurityManagerInterface
         }
 
         // Check if the path is in the allowed list
-        if (!empty($this->allowedPaths)) {
+        if ($this->allowedPaths !== []) {
             $allowed = false;
 
             foreach ($this->allowedPaths as $allowedPath) {
-                if (strpos($realPath, $allowedPath) === 0) {
+                if (str_starts_with($realPath, $allowedPath)) {
                     $allowed = true;
                     break;
                 }
@@ -188,7 +184,7 @@ class SecurityManager implements SecurityManagerInterface
 
         // Check if the path is in the disallowed list
         foreach ($this->disallowedPaths as $disallowedPath) {
-            if (strpos($realPath, $disallowedPath) === 0) {
+            if (str_starts_with($realPath, $disallowedPath)) {
                 $this->logSecurityEvent(
                     'Path in disallowed list',
                     'warning',
@@ -264,6 +260,7 @@ class SecurityManager implements SecurityManagerInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function sanitizeInput(string $input, array $context = []): string
     {
         if (!$this->settings['sanitize_inputs']) {
@@ -275,12 +272,12 @@ class SecurityManager implements SecurityManagerInterface
 
         // Remove HTML/JS tags in appropriate contexts
         if (isset($context['context']) && $context['context'] === 'html') {
-            $sanitized = htmlspecialchars($sanitized, ENT_QUOTES, 'UTF-8');
+            $sanitized = htmlspecialchars((string) $sanitized, ENT_QUOTES, 'UTF-8');
         }
 
         // Escape shell commands in appropriate contexts
         if (isset($context['context']) && $context['context'] === 'shell') {
-            $sanitized = escapeshellarg($sanitized);
+            return escapeshellarg((string) $sanitized);
         }
 
         return $sanitized;
@@ -289,6 +286,7 @@ class SecurityManager implements SecurityManagerInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function detectPromptInjection(string $prompt, array $context = []): bool
     {
         if (!$this->settings['check_prompt_injection']) {
@@ -298,7 +296,7 @@ class SecurityManager implements SecurityManagerInterface
         $lowerPrompt = strtolower($prompt);
 
         foreach ($this->injectionPatterns as $pattern) {
-            if (strpos($lowerPrompt, $pattern) !== false) {
+            if (str_contains($lowerPrompt, $pattern)) {
                 $this->logSecurityEvent(
                     'Potential prompt injection detected',
                     'warning',
@@ -318,6 +316,7 @@ class SecurityManager implements SecurityManagerInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function isCommandSafe(string $command, array $context = []): bool
     {
         if (!$this->settings['check_command_safety']) {
@@ -345,7 +344,7 @@ class SecurityManager implements SecurityManagerInterface
         }
 
         // If we have an allowed list, check if the command is permitted
-        if (!empty($this->allowedCommands)) {
+        if ($this->allowedCommands !== []) {
             $allowed = false;
 
             foreach ($this->allowedCommands as $allowedCmd) {
@@ -403,36 +402,24 @@ class SecurityManager implements SecurityManagerInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function logSecurityEvent(string $event, string $level, array $context = []): void
     {
         if ($this->logger && $this->settings['log_security_events']) {
-            switch ($level) {
-                case 'info':
-                    $this->logger->info("[SECURITY] $event", $context);
-                    break;
-
-                case 'warning':
-                    $this->logger->warning("[SECURITY] $event", $context);
-                    break;
-
-                case 'error':
-                    $this->logger->error("[SECURITY] $event", $context);
-                    break;
-
-                case 'critical':
-                    $this->logger->critical("[SECURITY] $event", $context);
-                    break;
-
-                default:
-                    $this->logger->info("[SECURITY] $event", $context);
-                    break;
-            }
+            match ($level) {
+                'info' => $this->logger->info("[SECURITY] $event", $context),
+                'warning' => $this->logger->warning("[SECURITY] $event", $context),
+                'error' => $this->logger->error("[SECURITY] $event", $context),
+                'critical' => $this->logger->critical("[SECURITY] $event", $context),
+                default => $this->logger->info("[SECURITY] $event", $context),
+            };
         }
     }
 
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getSecuritySettings(): array
     {
         return $this->settings;
@@ -441,6 +428,7 @@ class SecurityManager implements SecurityManagerInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function configure(array $settings): void
     {
         $this->settings = array_merge($this->settings, $settings);
@@ -467,7 +455,6 @@ class SecurityManager implements SecurityManagerInterface
      * Add a safe path for file operations.
      *
      * @param string $path The path to add to the allowed list
-     * @return self
      */
     public function addAllowedPath(string $path): self
     {
@@ -479,7 +466,6 @@ class SecurityManager implements SecurityManagerInterface
      * Add a path to the disallowed list.
      *
      * @param string $path The path to add to the disallowed list
-     * @return self
      */
     public function addDisallowedPath(string $path): self
     {
@@ -491,7 +477,6 @@ class SecurityManager implements SecurityManagerInterface
      * Add a command to the allowed list.
      *
      * @param string $command The command to add to the allowed list
-     * @return self
      */
     public function addAllowedCommand(string $command): self
     {
@@ -503,7 +488,6 @@ class SecurityManager implements SecurityManagerInterface
      * Add a command to the blocked list.
      *
      * @param string $command The command to add to the blocked list
-     * @return self
      */
     public function addBlockedCommand(string $command): self
     {
@@ -513,8 +497,6 @@ class SecurityManager implements SecurityManagerInterface
 
     /**
      * Initialize prompt injection detection patterns.
-     *
-     * @return void
      */
     private function initializeInjectionPatterns(): void
     {

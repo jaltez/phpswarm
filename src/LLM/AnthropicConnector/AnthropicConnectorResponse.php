@@ -12,11 +12,6 @@ use PhpSwarm\Contract\LLM\LLMResponseInterface;
 class AnthropicConnectorResponse implements LLMResponseInterface
 {
     /**
-     * @var array<string, mixed> The raw response data
-     */
-    private array $rawResponse;
-
-    /**
      * @var string The content of the response
      */
     private string $content = '';
@@ -66,9 +61,8 @@ class AnthropicConnectorResponse implements LLMResponseInterface
      *
      * @param array<string, mixed> $rawResponse The raw response data
      */
-    public function __construct(array $rawResponse)
+    public function __construct(private array $rawResponse)
     {
-        $this->rawResponse = $rawResponse;
         $this->parseResponse();
     }
 
@@ -109,9 +103,8 @@ class AnthropicConnectorResponse implements LLMResponseInterface
 
     /**
      * Get the main text/content of the response
-     *
-     * @return string
      */
+    #[\Override]
     public function getContent(): string
     {
         return $this->content;
@@ -122,6 +115,7 @@ class AnthropicConnectorResponse implements LLMResponseInterface
      *
      * @return array<string, mixed>
      */
+    #[\Override]
     public function getRawResponse(): array
     {
         return $this->rawResponse;
@@ -132,6 +126,7 @@ class AnthropicConnectorResponse implements LLMResponseInterface
      *
      * @return array<array<string, mixed>>
      */
+    #[\Override]
     public function getToolCalls(): array
     {
         return $this->toolCalls;
@@ -139,9 +134,8 @@ class AnthropicConnectorResponse implements LLMResponseInterface
 
     /**
      * Get whether the response contains tool calls
-     *
-     * @return bool
      */
+    #[\Override]
     public function hasToolCalls(): bool
     {
         return $this->hasToolCalls;
@@ -149,9 +143,8 @@ class AnthropicConnectorResponse implements LLMResponseInterface
 
     /**
      * Get the number of prompt tokens used
-     *
-     * @return int|null
      */
+    #[\Override]
     public function getPromptTokens(): ?int
     {
         return $this->promptTokens;
@@ -159,9 +152,8 @@ class AnthropicConnectorResponse implements LLMResponseInterface
 
     /**
      * Get the number of completion tokens used
-     *
-     * @return int|null
      */
+    #[\Override]
     public function getCompletionTokens(): ?int
     {
         return $this->completionTokens;
@@ -169,9 +161,8 @@ class AnthropicConnectorResponse implements LLMResponseInterface
 
     /**
      * Get the total number of tokens used
-     *
-     * @return int|null
      */
+    #[\Override]
     public function getTotalTokens(): ?int
     {
         return $this->totalTokens;
@@ -179,9 +170,8 @@ class AnthropicConnectorResponse implements LLMResponseInterface
 
     /**
      * Get the model used for this response
-     *
-     * @return string
      */
+    #[\Override]
     public function getModel(): string
     {
         return $this->model;
@@ -192,6 +182,7 @@ class AnthropicConnectorResponse implements LLMResponseInterface
      *
      * @return array<string, mixed>
      */
+    #[\Override]
     public function getMetadata(): array
     {
         return $this->metadata;
@@ -199,9 +190,8 @@ class AnthropicConnectorResponse implements LLMResponseInterface
 
     /**
      * Get the finish reason provided by the LLM
-     *
-     * @return string|null
      */
+    #[\Override]
     public function getFinishReason(): ?string
     {
         return $this->finishReason;
@@ -212,7 +202,6 @@ class AnthropicConnectorResponse implements LLMResponseInterface
      *
      * @param string $key The metadata key
      * @param mixed $value The metadata value
-     * @return self
      */
     public function addMetadata(string $key, mixed $value): self
     {

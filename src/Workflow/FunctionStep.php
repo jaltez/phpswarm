@@ -13,16 +13,6 @@ use PhpSwarm\Contract\Workflow\WorkflowStepInterface;
 class FunctionStep implements WorkflowStepInterface
 {
     /**
-     * @var string The name of the step
-     */
-    private string $name;
-
-    /**
-     * @var string The description of the step
-     */
-    private string $description;
-
-    /**
      * @var callable The function to execute
      */
     private $function;
@@ -55,18 +45,17 @@ class FunctionStep implements WorkflowStepInterface
      * @param string $description The description of the step
      */
     public function __construct(
-        string $name,
+        private string $name,
         callable $function,
-        string $description = ''
+        private string $description = ''
     ) {
-        $this->name = $name;
         $this->function = $function;
-        $this->description = $description;
     }
 
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function execute(array $input, array $stepsOutput = []): array
     {
         $startTime = microtime(true);
@@ -87,7 +76,7 @@ class FunctionStep implements WorkflowStepInterface
         } catch (\Throwable $e) {
             return [
                 'error' => $e->getMessage(),
-                'exception' => get_class($e),
+                'exception' => $e::class,
                 'trace' => $e->getTraceAsString(),
                 'execution_time' => microtime(true) - $startTime,
             ];
@@ -97,6 +86,7 @@ class FunctionStep implements WorkflowStepInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getName(): string
     {
         return $this->name;
@@ -105,6 +95,7 @@ class FunctionStep implements WorkflowStepInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function setName(string $name): self
     {
         $this->name = $name;
@@ -114,6 +105,7 @@ class FunctionStep implements WorkflowStepInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getDescription(): string
     {
         return $this->description;
@@ -122,6 +114,7 @@ class FunctionStep implements WorkflowStepInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function setDescription(string $description): self
     {
         $this->description = $description;
@@ -131,6 +124,7 @@ class FunctionStep implements WorkflowStepInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getAgent(): ?AgentInterface
     {
         return null; // Function steps don't use agents
@@ -139,6 +133,7 @@ class FunctionStep implements WorkflowStepInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function setAgent(AgentInterface $agent): self
     {
         // Silently ignore as function steps don't use agents
@@ -148,6 +143,7 @@ class FunctionStep implements WorkflowStepInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getTimeout(): ?int
     {
         return $this->timeout;
@@ -156,6 +152,7 @@ class FunctionStep implements WorkflowStepInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function setTimeout(?int $timeout): self
     {
         $this->timeout = $timeout;
@@ -165,6 +162,7 @@ class FunctionStep implements WorkflowStepInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function isRequired(): bool
     {
         return $this->required;
@@ -173,6 +171,7 @@ class FunctionStep implements WorkflowStepInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function setRequired(bool $required): self
     {
         $this->required = $required;
@@ -182,6 +181,7 @@ class FunctionStep implements WorkflowStepInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getInputMapping(): array
     {
         return $this->inputMapping;
@@ -190,6 +190,7 @@ class FunctionStep implements WorkflowStepInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function setInputMapping(array $mapping): self
     {
         $this->inputMapping = $mapping;
@@ -199,6 +200,7 @@ class FunctionStep implements WorkflowStepInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getOutputMapping(): array
     {
         return $this->outputMapping;
@@ -207,6 +209,7 @@ class FunctionStep implements WorkflowStepInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function setOutputMapping(array $mapping): self
     {
         $this->outputMapping = $mapping;
@@ -227,7 +230,6 @@ class FunctionStep implements WorkflowStepInterface
      * Set the function to execute.
      *
      * @param callable $function The function
-     * @return self
      */
     public function setFunction(callable $function): self
     {

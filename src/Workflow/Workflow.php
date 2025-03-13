@@ -17,16 +17,6 @@ use PhpSwarm\Exception\PhpSwarmException;
 class Workflow implements WorkflowInterface
 {
     /**
-     * @var string The name of the workflow
-     */
-    private string $name;
-
-    /**
-     * @var string The description of the workflow
-     */
-    private string $description;
-
-    /**
      * @var array<string, WorkflowStepInterface> The steps in this workflow
      */
     private array $steps = [];
@@ -42,16 +32,6 @@ class Workflow implements WorkflowInterface
     private int $maxParallelSteps = 1;
 
     /**
-     * @var LoggerInterface|null The logger to use
-     */
-    private ?LoggerInterface $logger;
-
-    /**
-     * @var MonitorInterface|null The performance monitor to use
-     */
-    private ?MonitorInterface $monitor;
-
-    /**
      * Create a new Workflow instance.
      *
      * @param string $name The name of the workflow
@@ -59,21 +39,14 @@ class Workflow implements WorkflowInterface
      * @param LoggerInterface|null $logger Optional logger
      * @param MonitorInterface|null $monitor Optional performance monitor
      */
-    public function __construct(
-        string $name,
-        string $description = '',
-        ?LoggerInterface $logger = null,
-        ?MonitorInterface $monitor = null
-    ) {
-        $this->name = $name;
-        $this->description = $description;
-        $this->logger = $logger;
-        $this->monitor = $monitor;
+    public function __construct(private string $name, private string $description = '', private readonly ?LoggerInterface $logger = null, private readonly ?MonitorInterface $monitor = null)
+    {
     }
 
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function addStep(string $stepId, WorkflowStepInterface $step): self
     {
         if (isset($this->steps[$stepId])) {
@@ -83,7 +56,7 @@ class Workflow implements WorkflowInterface
         $this->steps[$stepId] = $step;
         $this->dependencies[$stepId] = [];
 
-        if ($this->logger) {
+        if ($this->logger instanceof \PhpSwarm\Contract\Logger\LoggerInterface) {
             $this->logger->debug("Added step '$stepId' to workflow", [
                 'workflow' => $this->name,
                 'step_name' => $step->getName(),
@@ -96,6 +69,7 @@ class Workflow implements WorkflowInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function addDependency(string $stepId, string $dependsOnStepId): self
     {
         if (!isset($this->steps[$stepId])) {
@@ -118,7 +92,7 @@ class Workflow implements WorkflowInterface
         if (!in_array($dependsOnStepId, $this->dependencies[$stepId], true)) {
             $this->dependencies[$stepId][] = $dependsOnStepId;
 
-            if ($this->logger) {
+            if ($this->logger instanceof \PhpSwarm\Contract\Logger\LoggerInterface) {
                 $this->logger->debug("Added dependency: '$stepId' depends on '$dependsOnStepId'", [
                     'workflow' => $this->name,
                 ]);
@@ -175,6 +149,7 @@ class Workflow implements WorkflowInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function setDependencies(string $stepId, array $dependsOnStepIds): self
     {
         if (!isset($this->steps[$stepId])) {
@@ -195,6 +170,7 @@ class Workflow implements WorkflowInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getSteps(): array
     {
         return $this->steps;
@@ -203,6 +179,7 @@ class Workflow implements WorkflowInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getStep(string $stepId): ?WorkflowStepInterface
     {
         return $this->steps[$stepId] ?? null;
@@ -211,6 +188,7 @@ class Workflow implements WorkflowInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getDependencies(string $stepId): array
     {
         return $this->dependencies[$stepId] ?? [];
@@ -219,19 +197,20 @@ class Workflow implements WorkflowInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function execute(array $input = []): WorkflowResultInterface
     {
         $startTime = microtime(true);
         $processId = null;
 
-        if ($this->monitor) {
+        if ($this->monitor instanceof \PhpSwarm\Contract\Logger\MonitorInterface) {
             $processId = $this->monitor->beginProcess("workflow.{$this->name}", [
                 'workflow' => $this->name,
                 'steps_count' => count($this->steps),
             ]);
         }
 
-        if ($this->logger) {
+        if ($this->logger instanceof \PhpSwarm\Contract\Logger\LoggerInterface) {
             $this->logger->info("Starting workflow '{$this->name}'", [
                 'steps_count' => count($this->steps),
                 'input_keys' => array_keys($input),
@@ -249,7 +228,7 @@ class Workflow implements WorkflowInterface
                 ]);
             }
 
-            if ($this->logger) {
+            if ($this->logger instanceof \PhpSwarm\Contract\Logger\LoggerInterface) {
                 $status = $result->isSuccessful() ? 'successfully' : 'with errors';
                 $this->logger->info("Workflow '{$this->name}' completed $status in {$result->getExecutionTime()}s", [
                     'success' => $result->isSuccessful(),
@@ -265,14 +244,14 @@ class Workflow implements WorkflowInterface
             if ($this->monitor && $processId) {
                 $this->monitor->failProcess($processId, $e->getMessage(), [
                     'execution_time' => $executionTime,
-                    'exception' => get_class($e),
+                    'exception' => $e::class,
                 ]);
             }
 
-            if ($this->logger) {
+            if ($this->logger instanceof \PhpSwarm\Contract\Logger\LoggerInterface) {
                 $this->logger->error("Workflow '{$this->name}' failed: {$e->getMessage()}", [
                     'execution_time' => $executionTime,
-                    'exception' => get_class($e),
+                    'exception' => $e::class,
                     'trace' => $e->getTraceAsString(),
                 ]);
             }
@@ -291,7 +270,7 @@ class Workflow implements WorkflowInterface
                         'time' => microtime(true),
                         'level' => 'error',
                         'message' => "Workflow execution failed: {$e->getMessage()}",
-                        'exception' => get_class($e),
+                        'exception' => $e::class,
                     ]
                 ]
             );
@@ -319,7 +298,7 @@ class Workflow implements WorkflowInterface
         $completedSteps = [];
 
         // Execute until all steps are completed or we can't proceed further
-        while (!empty($readySteps)) {
+        while ($readySteps !== []) {
             $currentBatch = array_slice($readySteps, 0, $this->maxParallelSteps);
             $readySteps = array_diff($readySteps, $currentBatch);
 
@@ -330,18 +309,18 @@ class Workflow implements WorkflowInterface
 
                 try {
                     // Prepare input for this step
-                    $stepInput = $this->prepareStepInput($stepId, $input, $stepResults);
+                    $stepInput = $this->prepareStepInput($stepId, $input);
 
                     // Execute the step
                     $timerId = null;
-                    if ($this->monitor) {
+                    if ($this->monitor instanceof \PhpSwarm\Contract\Logger\MonitorInterface) {
                         $timerId = $this->monitor->startTimer("workflow_step.{$stepId}", [
                             'workflow' => $this->name,
                             'step' => $stepId,
                         ]);
                     }
 
-                    if ($this->logger) {
+                    if ($this->logger instanceof \PhpSwarm\Contract\Logger\LoggerInterface) {
                         $this->logger->info("Executing workflow step '$stepId'", [
                             'workflow' => $this->name,
                             'step_name' => $step->getName(),
@@ -362,7 +341,7 @@ class Workflow implements WorkflowInterface
 
                     $this->logStepExecution($executionLog, $stepId, 'completed', null, $stepResult);
 
-                    if ($this->logger) {
+                    if ($this->logger instanceof \PhpSwarm\Contract\Logger\LoggerInterface) {
                         $this->logger->info("Workflow step '$stepId' completed successfully", [
                             'workflow' => $this->name,
                             'step_name' => $step->getName(),
@@ -383,11 +362,11 @@ class Workflow implements WorkflowInterface
 
                     $this->logStepExecution($executionLog, $stepId, 'failed', $error);
 
-                    if ($this->logger) {
+                    if ($this->logger instanceof \PhpSwarm\Contract\Logger\LoggerInterface) {
                         $this->logger->error("Workflow step '$stepId' failed: {$e->getMessage()}", [
                             'workflow' => $this->name,
                             'step_name' => $step->getName(),
-                            'exception' => get_class($e),
+                            'exception' => $e::class,
                             'trace' => $e->getTraceAsString(),
                         ]);
                     }
@@ -402,7 +381,7 @@ class Workflow implements WorkflowInterface
 
                                 $this->logStepExecution($executionLog, $dependentStepId, 'skipped', "Depends on failed step $stepId");
 
-                                if ($this->logger) {
+                                if ($this->logger instanceof \PhpSwarm\Contract\Logger\LoggerInterface) {
                                     $this->logger->notice("Skipping workflow step '$dependentStepId' due to dependency failure", [
                                         'workflow' => $this->name,
                                         'failed_dependency' => $stepId,
@@ -426,7 +405,7 @@ class Workflow implements WorkflowInterface
 
                 $this->logStepExecution($executionLog, $stepId, 'skipped', "Unreachable due to dependency graph");
 
-                if ($this->logger) {
+                if ($this->logger instanceof \PhpSwarm\Contract\Logger\LoggerInterface) {
                     $this->logger->notice("Skipping workflow step '$stepId' due to unreachable dependencies", [
                         'workflow' => $this->name,
                     ]);
@@ -437,7 +416,7 @@ class Workflow implements WorkflowInterface
         // Prepare the final output
         $output = $this->prepareWorkflowOutput($stepResults);
         $executionTime = microtime(true) - $startTime;
-        $success = empty($stepErrors) || $this->canCompleteWithErrors($stepErrors, $skippedSteps);
+        $success = $stepErrors === [] || $this->canCompleteWithErrors($stepErrors, $skippedSteps);
 
         return new WorkflowResult(
             $success,
@@ -460,7 +439,7 @@ class Workflow implements WorkflowInterface
     {
         $noDepSteps = [];
 
-        foreach ($this->steps as $stepId => $step) {
+        foreach (array_keys($this->steps) as $stepId) {
             if (empty($this->dependencies[$stepId])) {
                 $noDepSteps[] = $stepId;
             }
@@ -532,10 +511,9 @@ class Workflow implements WorkflowInterface
      *
      * @param string $stepId The step ID
      * @param array<string, mixed> $workflowInput The workflow input data
-     * @param array<string, array<string, mixed>> $stepResults Results from previous steps
      * @return array<string, mixed> The prepared input for the step
      */
-    private function prepareStepInput(string $stepId, array $workflowInput, array $stepResults): array
+    private function prepareStepInput(string $stepId, array $workflowInput): array
     {
         $step = $this->steps[$stepId];
         $inputMapping = $step->getInputMapping();
@@ -651,6 +629,7 @@ class Workflow implements WorkflowInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getName(): string
     {
         return $this->name;
@@ -659,6 +638,7 @@ class Workflow implements WorkflowInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function setName(string $name): self
     {
         $this->name = $name;
@@ -668,6 +648,7 @@ class Workflow implements WorkflowInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getDescription(): string
     {
         return $this->description;
@@ -676,6 +657,7 @@ class Workflow implements WorkflowInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function setDescription(string $description): self
     {
         $this->description = $description;
@@ -685,6 +667,7 @@ class Workflow implements WorkflowInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function setMaxParallelSteps(int $maxParallelSteps): self
     {
         if ($maxParallelSteps < 1) {
@@ -698,6 +681,7 @@ class Workflow implements WorkflowInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getMaxParallelSteps(): int
     {
         return $this->maxParallelSteps;

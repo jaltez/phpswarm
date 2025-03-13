@@ -68,7 +68,6 @@ class AgentBuilder
      * Set the agent name.
      *
      * @param string $name Agent name
-     * @return self
      */
     public function withName(string $name): self
     {
@@ -80,7 +79,6 @@ class AgentBuilder
      * Set the agent role.
      *
      * @param string $role Agent role
-     * @return self
      */
     public function withRole(string $role): self
     {
@@ -92,7 +90,6 @@ class AgentBuilder
      * Set the agent goal.
      *
      * @param string $goal Agent goal
-     * @return self
      */
     public function withGoal(string $goal): self
     {
@@ -104,7 +101,6 @@ class AgentBuilder
      * Set the agent backstory.
      *
      * @param string $backstory Agent backstory
-     * @return self
      */
     public function withBackstory(string $backstory): self
     {
@@ -116,7 +112,6 @@ class AgentBuilder
      * Set the LLM to be used by the agent.
      *
      * @param LLMInterface $llm The LLM to use
-     * @return self
      */
     public function withLLM(LLMInterface $llm): self
     {
@@ -128,7 +123,6 @@ class AgentBuilder
      * Set the memory system to be used by the agent.
      *
      * @param MemoryInterface $memory The memory system to use
-     * @return self
      */
     public function withMemory(MemoryInterface $memory): self
     {
@@ -140,7 +134,6 @@ class AgentBuilder
      * Add a tool to the agent.
      *
      * @param ToolInterface $tool The tool to add
-     * @return self
      */
     public function addTool(ToolInterface $tool): self
     {
@@ -152,7 +145,6 @@ class AgentBuilder
      * Add multiple tools to the agent.
      *
      * @param array<ToolInterface> $tools The tools to add
-     * @return self
      */
     public function addTools(array $tools): self
     {
@@ -166,7 +158,6 @@ class AgentBuilder
      * Enable or disable verbose logging for the agent.
      *
      * @param bool $verbose Whether to enable verbose logging
-     * @return self
      */
     public function withVerboseLogging(bool $verbose = true): self
     {
@@ -178,7 +169,6 @@ class AgentBuilder
      * Set whether the agent can delegate tasks to other agents.
      *
      * @param bool $allowDelegation Whether to allow delegation
-     * @return self
      */
     public function allowDelegation(bool $allowDelegation = true): self
     {
@@ -188,9 +178,6 @@ class AgentBuilder
 
     /**
      * Set the maximum number of iterations for the agent to run.
-     *
-     * @param int $maxIterations
-     * @return self
      */
     public function withMaxIterations(int $maxIterations): self
     {
@@ -201,7 +188,6 @@ class AgentBuilder
     /**
      * Build the Agent instance.
      *
-     * @return Agent
      * @throws \InvalidArgumentException If required properties are missing
      */
     public function build(): Agent

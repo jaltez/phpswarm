@@ -34,7 +34,6 @@ interface WorkflowStepInterface
      * Set the name of this step.
      *
      * @param string $name The step name
-     * @return self
      */
     public function setName(string $name): self;
 
@@ -49,7 +48,6 @@ interface WorkflowStepInterface
      * Set the description of this step.
      *
      * @param string $description The step description
-     * @return self
      */
     public function setDescription(string $description): self;
 
@@ -64,7 +62,6 @@ interface WorkflowStepInterface
      * Set the agent for this step.
      *
      * @param AgentInterface $agent The agent to assign
-     * @return self
      */
     public function setAgent(AgentInterface $agent): self;
 
@@ -79,7 +76,6 @@ interface WorkflowStepInterface
      * Set the maximum execution time for this step in seconds.
      *
      * @param int|null $timeout The timeout in seconds, or null for no timeout
-     * @return self
      */
     public function setTimeout(?int $timeout): self;
 
@@ -94,7 +90,6 @@ interface WorkflowStepInterface
      * Set whether this step is required for workflow completion.
      *
      * @param bool $required True if the step is required, false if optional
-     * @return self
      */
     public function setRequired(bool $required): self;
 
@@ -109,7 +104,6 @@ interface WorkflowStepInterface
      * Set the mapping of input data from workflow input to step input.
      *
      * @param array<string, string> $mapping Mapping of workflow input keys to step input keys
-     * @return self
      */
     public function setInputMapping(array $mapping): self;
 
@@ -124,7 +118,6 @@ interface WorkflowStepInterface
      * Set the mapping of output data from step output to workflow output.
      *
      * @param array<string, string> $mapping Mapping of step output keys to workflow output keys
-     * @return self
      */
     public function setOutputMapping(array $mapping): self;
 }

@@ -19,6 +19,7 @@ class MakeToolCommand extends Command
     /**
      * Configure the command
      */
+    #[\Override]
     protected function configure(): void
     {
         $this
@@ -33,6 +34,7 @@ class MakeToolCommand extends Command
     /**
      * Execute the command
      */
+    #[\Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
@@ -53,8 +55,8 @@ class MakeToolCommand extends Command
             mkdir($directory, 0755, true);
 
             // If it's a new tool type, create a subdirectory
-            if (strpos($directory, 'src/Tool/') === 0 && substr_count($directory, '/') === 2) {
-                $subDir = basename($directory);
+            if (str_starts_with((string) $directory, 'src/Tool/') && substr_count((string) $directory, '/') === 2) {
+                $subDir = basename((string) $directory);
                 $directory = $directory . '/' . $subDir;
                 mkdir($directory, 0755, true);
             }
@@ -118,7 +120,7 @@ class MakeToolCommand extends Command
      */
     private function parseParameters(string $parametersString): array
     {
-        if (empty($parametersString)) {
+        if ($parametersString === '' || $parametersString === '0') {
             return [];
         }
 
@@ -132,7 +134,7 @@ class MakeToolCommand extends Command
             $type = $parts[1] ?? 'string';
             $description = $parts[2] ?? 'Parameter description';
 
-            if (!empty($name)) {
+            if ($name !== '' && $name !== '0') {
                 $parameters[] = [
                     'name' => $name,
                     'type' => $type,
@@ -249,7 +251,7 @@ PHP;
         $name = preg_replace('/Tool$/', '', $className);
 
         // Add spaces before capital letters and trim
-        return trim(preg_replace('/(?<!^)[A-Z]/', ' $0', $name));
+        return trim((string) preg_replace('/(?<!^)[A-Z]/', ' $0', (string) $name));
     }
 
     /**
@@ -257,7 +259,7 @@ PHP;
      */
     private function generateParametersSchema(array $parameters): string
     {
-        if (empty($parameters)) {
+        if ($parameters === []) {
             return '[]';
         }
 
@@ -271,9 +273,7 @@ PHP;
             $schema .= "            ],\n";
         }
 
-        $schema .= "        ]";
-
-        return $schema;
+        return $schema . "        ]";
     }
 
     /**
@@ -281,7 +281,7 @@ PHP;
      */
     private function generateParameterValidation(array $parameters): string
     {
-        if (empty($parameters)) {
+        if ($parameters === []) {
             return '';
         }
 
@@ -300,7 +300,7 @@ PHP;
      */
     private function generateParameterProperties(array $parameters): string
     {
-        if (empty($parameters)) {
+        if ($parameters === []) {
             return '';
         }
 
@@ -317,7 +317,7 @@ PHP;
             $properties .= "     * @param array<string, mixed> \$parameters The parameters array\n";
             $properties .= "     * @return {$type}|null The {$name} value\n";
             $properties .= "     */\n";
-            $properties .= "    private function get" . ucfirst($name) . "(array \$parameters): ?" . $type . "\n";
+            $properties .= "    private function get" . ucfirst((string) $name) . "(array \$parameters): ?" . $type . "\n";
             $properties .= "    {\n";
             $properties .= "        return \$parameters['{$name}'] ?? null;\n";
             $properties .= "    }\n\n";

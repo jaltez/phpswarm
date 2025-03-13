@@ -20,18 +20,12 @@ class SecurityMetrics
     private array $recentEvents = [];
 
     /**
-     * @var int Maximum number of recent events to store
-     */
-    private int $maxRecentEvents;
-
-    /**
      * Create a new SecurityMetrics instance.
      *
      * @param int $maxRecentEvents Maximum number of recent events to store
      */
-    public function __construct(int $maxRecentEvents = 100)
+    public function __construct(private readonly int $maxRecentEvents = 100)
     {
-        $this->maxRecentEvents = $maxRecentEvents;
         $this->initializeCounters();
     }
 
@@ -41,7 +35,6 @@ class SecurityMetrics
      * @param string $type The type of event (e.g., 'input_validation', 'path_safety', 'prompt_injection')
      * @param string $result The result of the check ('passed', 'failed', 'blocked')
      * @param array<string, mixed> $details Additional details about the event
-     * @return self
      */
     public function recordEvent(string $type, string $result, array $details = []): self
     {
@@ -82,7 +75,6 @@ class SecurityMetrics
      *
      * @param bool $passed Whether validation passed
      * @param array<string, mixed> $details Details about the validation
-     * @return self
      */
     public function recordInputValidation(bool $passed, array $details = []): self
     {
@@ -98,7 +90,6 @@ class SecurityMetrics
      *
      * @param bool $passed Whether the path was deemed safe
      * @param array<string, mixed> $details Details about the check
-     * @return self
      */
     public function recordPathSafetyCheck(bool $passed, array $details = []): self
     {
@@ -114,7 +105,6 @@ class SecurityMetrics
      *
      * @param bool $injectionDetected Whether injection was detected
      * @param array<string, mixed> $details Details about the detection
-     * @return self
      */
     public function recordPromptInjectionCheck(bool $injectionDetected, array $details = []): self
     {
@@ -130,7 +120,6 @@ class SecurityMetrics
      *
      * @param bool $passed Whether the command was deemed safe
      * @param array<string, mixed> $details Details about the check
-     * @return self
      */
     public function recordCommandSafetyCheck(bool $passed, array $details = []): self
     {
@@ -176,26 +165,20 @@ class SecurityMetrics
 
         // Filter by type if specified
         if ($type !== null) {
-            $events = array_filter($events, function ($event) use ($type) {
-                return $event['type'] === $type;
-            });
+            $events = array_filter($events, fn(array $event): bool => $event['type'] === $type);
         }
 
         // Filter by result if specified
         if ($result !== null) {
-            $events = array_filter($events, function ($event) use ($result) {
-                return $event['result'] === $result;
-            });
+            $events = array_filter($events, fn(array $event): bool => $event['result'] === $result);
         }
 
         // Sort by timestamp (newest first)
-        usort($events, function ($a, $b) {
-            return $b['timestamp'] <=> $a['timestamp'];
-        });
+        usort($events, fn(array $a, array $b): int => $b['timestamp'] <=> $a['timestamp']);
 
         // Apply limit if specified
         if ($limit !== null && $limit > 0) {
-            $events = array_slice($events, 0, $limit);
+            return array_slice($events, 0, $limit);
         }
 
         return $events;
@@ -262,8 +245,6 @@ class SecurityMetrics
 
     /**
      * Reset all counters and clear recent events.
-     *
-     * @return self
      */
     public function reset(): self
     {
@@ -274,8 +255,6 @@ class SecurityMetrics
 
     /**
      * Initialize counters with default values.
-     *
-     * @return void
      */
     private function initializeCounters(): void
     {

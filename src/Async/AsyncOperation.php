@@ -40,7 +40,7 @@ class AsyncOperation implements AsyncOperationInterface
     /**
      * @var resource|null Process handle
      */
-    protected $processHandle = null;
+    protected $processHandle;
 
     /**
      * Create a new AsyncOperation instance.
@@ -56,6 +56,7 @@ class AsyncOperation implements AsyncOperationInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function start(): string
     {
         if ($this->status !== 'pending') {
@@ -73,6 +74,7 @@ class AsyncOperation implements AsyncOperationInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function isComplete(): bool
     {
         if (in_array($this->status, ['complete', 'error', 'cancelled'], true)) {
@@ -89,6 +91,7 @@ class AsyncOperation implements AsyncOperationInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function wait(?int $timeout = null): mixed
     {
         if ($this->status === 'pending') {
@@ -106,7 +109,7 @@ class AsyncOperation implements AsyncOperationInterface
             usleep(10000); // 10ms
         }
 
-        if ($this->error) {
+        if ($this->error instanceof \Throwable) {
             throw new AsyncOperationException(
                 'Operation failed: ' . $this->error->getMessage(),
                 0,
@@ -120,6 +123,7 @@ class AsyncOperation implements AsyncOperationInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getResult(): mixed
     {
         return $this->result;
@@ -128,6 +132,7 @@ class AsyncOperation implements AsyncOperationInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function cancel(): bool
     {
         if (in_array($this->status, ['complete', 'error', 'cancelled'], true)) {
@@ -146,6 +151,7 @@ class AsyncOperation implements AsyncOperationInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getId(): string
     {
         return $this->id;
@@ -154,6 +160,7 @@ class AsyncOperation implements AsyncOperationInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getStatus(): string
     {
         if ($this->status === 'running') {
@@ -166,6 +173,7 @@ class AsyncOperation implements AsyncOperationInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getError(): ?\Throwable
     {
         return $this->error;
@@ -173,8 +181,6 @@ class AsyncOperation implements AsyncOperationInterface
 
     /**
      * Execute the operation asynchronously.
-     *
-     * @return void
      */
     protected function executeAsync(): void
     {
@@ -243,8 +249,6 @@ class AsyncOperation implements AsyncOperationInterface
 
     /**
      * Check the status of the process.
-     *
-     * @return void
      */
     protected function checkProcessStatus(): void
     {
@@ -269,8 +273,6 @@ class AsyncOperation implements AsyncOperationInterface
 
     /**
      * Terminate the process.
-     *
-     * @return void
      */
     protected function terminateProcess(): void
     {
@@ -295,8 +297,6 @@ class AsyncOperation implements AsyncOperationInterface
 
     /**
      * Clean up temporary files.
-     *
-     * @return void
      */
     protected function cleanupFiles(): void
     {

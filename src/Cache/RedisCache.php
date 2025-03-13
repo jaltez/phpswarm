@@ -22,7 +22,7 @@ class RedisCache implements CacheInterface
     /**
      * @var string The key prefix
      */
-    private string $prefix;
+    private readonly string $prefix;
 
     /**
      * Create a new RedisCache instance.
@@ -51,16 +51,12 @@ class RedisCache implements CacheInterface
                 throw new CacheException('Failed to connect to Redis server');
             }
 
-            if ($config['auth'] !== null) {
-                if (!$this->redis->auth($config['auth'])) {
-                    throw new CacheException('Failed to authenticate with Redis server');
-                }
+            if ($config['auth'] !== null && !$this->redis->auth($config['auth'])) {
+                throw new CacheException('Failed to authenticate with Redis server');
             }
 
-            if ($config['database'] !== 0) {
-                if (!$this->redis->select($config['database'])) {
-                    throw new CacheException('Failed to select Redis database');
-                }
+            if ($config['database'] !== 0 && !$this->redis->select($config['database'])) {
+                throw new CacheException('Failed to select Redis database');
             }
         } catch (RedisException $e) {
             throw new CacheException('Redis error: ' . $e->getMessage(), 0, $e);
@@ -70,6 +66,7 @@ class RedisCache implements CacheInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function get(string $key, mixed $default = null): mixed
     {
         try {
@@ -80,7 +77,7 @@ class RedisCache implements CacheInterface
             }
 
             return unserialize($value);
-        } catch (RedisException $e) {
+        } catch (RedisException) {
             return $default;
         }
     }
@@ -88,6 +85,7 @@ class RedisCache implements CacheInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function set(string $key, mixed $value, ?int $ttl = null): bool
     {
         try {
@@ -99,7 +97,7 @@ class RedisCache implements CacheInterface
             }
 
             return $this->redis->setex($prefixedKey, $ttl, $serialized);
-        } catch (RedisException $e) {
+        } catch (RedisException) {
             return false;
         }
     }
@@ -107,11 +105,12 @@ class RedisCache implements CacheInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function has(string $key): bool
     {
         try {
             return $this->redis->exists($this->prefix . $key) > 0;
-        } catch (RedisException $e) {
+        } catch (RedisException) {
             return false;
         }
     }
@@ -119,11 +118,12 @@ class RedisCache implements CacheInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function delete(string $key): bool
     {
         try {
             return $this->redis->del($this->prefix . $key) > 0;
-        } catch (RedisException $e) {
+        } catch (RedisException) {
             return false;
         }
     }
@@ -131,6 +131,7 @@ class RedisCache implements CacheInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function clear(): bool
     {
         try {
@@ -141,7 +142,7 @@ class RedisCache implements CacheInterface
             }
 
             return $this->redis->del($keys) > 0;
-        } catch (RedisException $e) {
+        } catch (RedisException) {
             return false;
         }
     }
@@ -149,26 +150,21 @@ class RedisCache implements CacheInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getMultiple(array $keys, mixed $default = null): array
     {
         try {
-            $prefixedKeys = array_map(function ($key) {
-                return $this->prefix . $key;
-            }, $keys);
+            $prefixedKeys = array_map(fn(string $key): string => $this->prefix . $key, $keys);
 
             $values = $this->redis->mGet($prefixedKeys);
             $result = [];
 
             foreach ($keys as $i => $key) {
-                if ($values[$i] === false) {
-                    $result[$key] = $default;
-                } else {
-                    $result[$key] = unserialize($values[$i]);
-                }
+                $result[$key] = $values[$i] === false ? $default : unserialize($values[$i]);
             }
 
             return $result;
-        } catch (RedisException $e) {
+        } catch (RedisException) {
             $result = [];
 
             foreach ($keys as $key) {
@@ -182,6 +178,7 @@ class RedisCache implements CacheInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function setMultiple(array $values, ?int $ttl = null): bool
     {
         try {
@@ -200,7 +197,7 @@ class RedisCache implements CacheInterface
 
             $pipe->exec();
             return true;
-        } catch (RedisException $e) {
+        } catch (RedisException) {
             return false;
         }
     }
@@ -208,27 +205,24 @@ class RedisCache implements CacheInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function deleteMultiple(array $keys): bool
     {
-        if (empty($keys)) {
+        if ($keys === []) {
             return true;
         }
 
         try {
-            $prefixedKeys = array_map(function ($key) {
-                return $this->prefix . $key;
-            }, $keys);
+            $prefixedKeys = array_map(fn(string $key): string => $this->prefix . $key, $keys);
 
             return $this->redis->del($prefixedKeys) > 0;
-        } catch (RedisException $e) {
+        } catch (RedisException) {
             return false;
         }
     }
 
     /**
      * Get the underlying Redis instance.
-     *
-     * @return Redis
      */
     public function getRedis(): Redis
     {

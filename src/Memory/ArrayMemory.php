@@ -29,6 +29,7 @@ class ArrayMemory implements MemoryInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function add(string $key, mixed $value, array $metadata = []): void
     {
         $this->storage[$key] = $value;
@@ -39,6 +40,7 @@ class ArrayMemory implements MemoryInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function get(string $key): mixed
     {
         return $this->storage[$key] ?? null;
@@ -47,6 +49,7 @@ class ArrayMemory implements MemoryInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function has(string $key): bool
     {
         return isset($this->storage[$key]);
@@ -55,6 +58,7 @@ class ArrayMemory implements MemoryInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function delete(string $key): bool
     {
         if (!$this->has($key)) {
@@ -68,6 +72,7 @@ class ArrayMemory implements MemoryInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function search(string $query, int $limit = 5): array
     {
         $results = [];
@@ -95,6 +100,7 @@ class ArrayMemory implements MemoryInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function clear(): void
     {
         $this->storage = [];
@@ -105,6 +111,7 @@ class ArrayMemory implements MemoryInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function all(): array
     {
         return $this->storage;
@@ -113,6 +120,7 @@ class ArrayMemory implements MemoryInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function size(): int
     {
         return count($this->storage);
@@ -121,13 +129,12 @@ class ArrayMemory implements MemoryInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getHistory(int $limit = 10, int $offset = 0): array
     {
         // Sort by timestamp in descending order (newest first)
         $keys = array_keys($this->timestamps);
-        usort($keys, function ($a, $b) {
-            return $this->timestamps[$b] <=> $this->timestamps[$a];
-        });
+        usort($keys, fn($a, $b): int => $this->timestamps[$b] <=> $this->timestamps[$a]);
 
         // Apply offset and limit
         $keys = array_slice($keys, $offset, $limit);
@@ -148,7 +155,6 @@ class ArrayMemory implements MemoryInterface
     /**
      * Get the metadata for a specific key.
      *
-     * @param string $key
      * @return array<string, mixed>|null
      */
     public function getMetadata(string $key): ?array
@@ -158,9 +164,6 @@ class ArrayMemory implements MemoryInterface
 
     /**
      * Get the timestamp for a specific key.
-     *
-     * @param string $key
-     * @return \DateTimeImmutable|null
      */
     public function getTimestamp(string $key): ?\DateTimeImmutable
     {

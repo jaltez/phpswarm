@@ -12,46 +12,6 @@ use PhpSwarm\Contract\Workflow\WorkflowResultInterface;
 class WorkflowResult implements WorkflowResultInterface
 {
     /**
-     * @var bool Whether the workflow was successful
-     */
-    private bool $success;
-
-    /**
-     * @var array<string, mixed> The output from the workflow
-     */
-    private array $output;
-
-    /**
-     * @var float The execution time in seconds
-     */
-    private float $executionTime;
-
-    /**
-     * @var array<string, array<string, mixed>> The results of all steps
-     */
-    private array $stepResults;
-
-    /**
-     * @var array<string, string> Any errors that occurred
-     */
-    private array $errors;
-
-    /**
-     * @var array<string> The steps that were executed successfully
-     */
-    private array $completedSteps;
-
-    /**
-     * @var array<string> The steps that were skipped
-     */
-    private array $skippedSteps;
-
-    /**
-     * @var array<int, array<string, mixed>> The execution log
-     */
-    private array $executionLog;
-
-    /**
      * Create a new WorkflowResult instance.
      *
      * @param bool $success Whether the workflow was successful
@@ -63,29 +23,14 @@ class WorkflowResult implements WorkflowResultInterface
      * @param array<string> $skippedSteps The steps that were skipped
      * @param array<int, array<string, mixed>> $executionLog The execution log
      */
-    public function __construct(
-        bool $success,
-        array $output,
-        float $executionTime,
-        array $stepResults,
-        array $errors,
-        array $completedSteps,
-        array $skippedSteps,
-        array $executionLog
-    ) {
-        $this->success = $success;
-        $this->output = $output;
-        $this->executionTime = $executionTime;
-        $this->stepResults = $stepResults;
-        $this->errors = $errors;
-        $this->completedSteps = $completedSteps;
-        $this->skippedSteps = $skippedSteps;
-        $this->executionLog = $executionLog;
+    public function __construct(private readonly bool $success, private array $output, private readonly float $executionTime, private array $stepResults, private array $errors, private readonly array $completedSteps, private readonly array $skippedSteps, private readonly array $executionLog)
+    {
     }
 
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function isSuccessful(): bool
     {
         return $this->success;
@@ -94,6 +39,7 @@ class WorkflowResult implements WorkflowResultInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getOutput(): array
     {
         return $this->output;
@@ -102,6 +48,7 @@ class WorkflowResult implements WorkflowResultInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getExecutionTime(): float
     {
         return $this->executionTime;
@@ -110,6 +57,7 @@ class WorkflowResult implements WorkflowResultInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getStepResults(): array
     {
         return $this->stepResults;
@@ -118,6 +66,7 @@ class WorkflowResult implements WorkflowResultInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getStepResult(string $stepId): ?array
     {
         return $this->stepResults[$stepId] ?? null;
@@ -126,6 +75,7 @@ class WorkflowResult implements WorkflowResultInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getErrors(): array
     {
         return $this->errors;
@@ -134,6 +84,7 @@ class WorkflowResult implements WorkflowResultInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function isStepSuccessful(string $stepId): bool
     {
         return in_array($stepId, $this->completedSteps, true) && !isset($this->errors[$stepId]);
@@ -142,6 +93,7 @@ class WorkflowResult implements WorkflowResultInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getSkippedSteps(): array
     {
         return $this->skippedSteps;
@@ -150,6 +102,7 @@ class WorkflowResult implements WorkflowResultInterface
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function getExecutionLog(): array
     {
         return $this->executionLog;
