@@ -11,6 +11,7 @@ use PhpSwarm\Contract\Memory\MemoryInterface;
 use PhpSwarm\Contract\Tool\ToolInterface;
 use PhpSwarm\Exception\Agent\AgentException;
 use PhpSwarm\Memory\ArrayMemory;
+use PhpSwarm\Console\ConsoleOutput;
 
 /**
  * Base implementation of an agent in the PHPSwarm system.
@@ -36,6 +37,11 @@ class Agent implements AgentInterface
      * @var int Maximum iterations to run before stopping
      */
     private int $maxIterations = 10;
+
+    /**
+     * @var bool Whether to use colorized console output
+     */
+    private bool $useColorizedOutput = false;
 
     /**
      * Create a new Agent instance.
@@ -71,6 +77,20 @@ class Agent implements AgentInterface
 
         $startTime = microtime(true);
         $trace = [];
+        
+        // Display agent information if colorized output is enabled
+        if ($this->useColorizedOutput && (!isset($context['silent']) || $context['silent'] !== true)) {
+            // Display agent header
+            echo ConsoleOutput::formatAgentInfo(
+                $this->name,
+                $this->role,
+                $this->goal,
+                $this->backstory,
+                $this->tools
+            );
+            
+            echo ConsoleOutput::info("Processing task: " . $task) . "\n";
+        }
 
         // Build the system prompt based on agent configuration
         $systemPrompt = "You are {$this->name}, a {$this->role}.\n";
@@ -134,7 +154,7 @@ class Agent implements AgentInterface
                 ];
                 
                 // Create the response
-                $response = new AgentResponse(
+                $response = $this->createAgentResponse(
                     $task,
                     $finalContent,
                     $trace,
@@ -149,7 +169,7 @@ class Agent implements AgentInterface
                     error_log("Error during streaming: " . $e->getMessage());
                 }
                 
-                return new AgentResponse(
+                return $this->createAgentResponse(
                     $task,
                     "An error occurred: " . $e->getMessage(),
                     $trace,
@@ -182,7 +202,7 @@ class Agent implements AgentInterface
                 }
                 
                 // Create the response
-                $response = new AgentResponse(
+                $response = $this->createAgentResponse(
                     $task,
                     $llmResponse->getContent(),
                     $trace,
@@ -199,7 +219,7 @@ class Agent implements AgentInterface
                     error_log("Error during chat completion: " . $e->getMessage());
                 }
                 
-                return new AgentResponse(
+                return $this->createAgentResponse(
                     $task,
                     "An error occurred: " . $e->getMessage(),
                     $trace,
@@ -353,5 +373,144 @@ class Agent implements AgentInterface
     public function getMaxIterations(): int
     {
         return $this->maxIterations;
+    }
+
+    /**
+     * Enable colorized console output for agent responses.
+     */
+    public function withColorizedOutput(bool $useColorizedOutput = true): self
+    {
+        $this->useColorizedOutput = $useColorizedOutput;
+        return $this;
+    }
+
+    /**
+     * Check if colorized output is enabled.
+     */
+    public function usesColorizedOutput(): bool
+    {
+        return $this->useColorizedOutput;
+    }
+
+    /**
+     * Create an appropriate AgentResponse instance based on settings.
+     *
+     * @param string $task The task given to the agent
+     * @param string $finalAnswer The final answer from the agent
+     * @param array<mixed> $trace The execution trace
+     * @param float $executionTime The execution time in seconds
+     * @param bool $successful Whether the task was completed successfully
+     * @param string|null $error Any error that occurred
+     * @param array<string, int> $tokenUsage Token usage information
+     * @param array<string, mixed> $metadata Additional metadata
+     * @return AgentResponseInterface The agent response
+     */
+    private function createAgentResponse(
+        string $task,
+        string $finalAnswer,
+        array $trace = [],
+        float $executionTime = 0.0,
+        bool $successful = true,
+        ?string $error = null,
+        array $tokenUsage = [],
+        array $metadata = []
+    ): AgentResponseInterface {
+        if ($this->useColorizedOutput) {
+            $response = new ColorizedAgentResponse(
+                $task,
+                $finalAnswer,
+                $trace,
+                $executionTime,
+                $successful,
+                $error,
+                $tokenUsage,
+                $metadata
+            );
+            
+            return $response;
+        }
+        
+        return new AgentResponse(
+            $task,
+            $finalAnswer,
+            $trace,
+            $executionTime,
+            $successful,
+            $error,
+            $tokenUsage,
+            $metadata
+        );
+    }
+    
+    /**
+     * Execute a tool and add to trace.
+     *
+     * @param ToolInterface $tool The tool to execute
+     * @param mixed $input The input for the tool
+     * @param array $trace The trace to add the tool execution to
+     * @return mixed The tool output
+     */
+    protected function executeTool(ToolInterface $tool, mixed $input, array &$trace): mixed
+    {
+        try {
+            // Display tool usage start if colorized output is enabled
+            if ($this->useColorizedOutput) {
+                echo ConsoleOutput::colorize("\nExecuting tool: ", ConsoleOutput::THEME_AGENT_TOOL) . 
+                     ConsoleOutput::colorize($tool->getName(), ConsoleOutput::FG_BOLD_YELLOW) . "\n";
+            }
+            
+            // Execute the tool
+            $output = $tool->run($input);
+            
+            // Add tool execution to trace
+            $traceItem = [
+                'type' => 'tool',
+                'tool_name' => $tool->getName(),
+                'input' => $input,
+                'output' => $output,
+                'timestamp' => microtime(true)
+            ];
+            
+            $trace[] = $traceItem;
+            
+            // Display colorized tool usage if enabled
+            if ($this->useColorizedOutput) {
+                echo ConsoleOutput::formatToolUsage(
+                    $tool->getName(),
+                    $input,
+                    $output,
+                    true
+                );
+            }
+            
+            return $output;
+        } catch (\Throwable $e) {
+            // Add error to trace
+            $traceItem = [
+                'type' => 'tool',
+                'tool_name' => $tool->getName(),
+                'input' => $input,
+                'error' => $e->getMessage(),
+                'timestamp' => microtime(true)
+            ];
+            
+            $trace[] = $traceItem;
+            
+            // Display colorized error if enabled
+            if ($this->useColorizedOutput) {
+                echo ConsoleOutput::formatToolUsage(
+                    $tool->getName(),
+                    $input,
+                    $e->getMessage(),
+                    false
+                );
+            }
+            
+            if ($this->verboseLogging) {
+                error_log("Error executing tool {$tool->getName()}: " . $e->getMessage());
+            }
+            
+            throw $e;
+        }
     }
 }

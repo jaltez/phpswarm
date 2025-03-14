@@ -60,9 +60,14 @@ class AgentBuilder
     private bool $allowDelegation = false;
 
     /**
-     * @var int Maximum iterations to run before stopping
+     * @var int Maximum iterations to run
      */
     private int $maxIterations = 10;
+
+    /**
+     * @var bool Use colorized console output
+     */
+    private bool $useColorizedOutput = false;
 
     /**
      * Set the agent name.
@@ -186,6 +191,17 @@ class AgentBuilder
     }
 
     /**
+     * Enable colorized console output for agent responses.
+     * 
+     * @param bool $useColorizedOutput Whether to use colorized output
+     */
+    public function withColorizedOutput(bool $useColorizedOutput = true): self
+    {
+        $this->useColorizedOutput = $useColorizedOutput;
+        return $this;
+    }
+
+    /**
      * Build the Agent instance.
      *
      * @throws \InvalidArgumentException If required properties are missing
@@ -226,6 +242,10 @@ class AgentBuilder
         }
 
         $agent->withMaxIterations($this->maxIterations);
+        
+        if ($this->useColorizedOutput) {
+            $agent->withColorizedOutput();
+        }
 
         return $agent;
     }
