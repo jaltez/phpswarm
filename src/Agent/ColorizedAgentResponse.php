@@ -35,7 +35,7 @@ class ColorizedAgentResponse extends AgentResponse
      */
     public function getColorizedTrace(): string
     {
-        if (empty($this->getTrace())) {
+        if ($this->getTrace() === []) {
             return '';
         }
         
@@ -107,7 +107,7 @@ class ColorizedAgentResponse extends AgentResponse
     {
         $metadata = $this->getMetadata();
         
-        if (empty($metadata)) {
+        if ($metadata === []) {
             return '';
         }
         

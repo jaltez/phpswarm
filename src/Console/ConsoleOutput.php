@@ -109,9 +109,7 @@ class ConsoleOutput
             $colored .= "\033[" . $background . "m";
         }
         
-        $colored .= $text . "\033[0m";
-        
-        return $colored;
+        return $colored . ($text . "\033[0m");
     }
     
     /**
@@ -144,7 +142,7 @@ class ConsoleOutput
         }
         
         // Add stats if provided
-        if ($executionTime > 0 || !empty($tokenUsage)) {
+        if ($executionTime > 0 || $tokenUsage !== []) {
             $output .= self::colorize("\n--- Stats ---", self::THEME_AGENT_STATS) . "\n";
             
             if ($executionTime > 0) {
@@ -154,7 +152,7 @@ class ConsoleOutput
                 $output .= self::colorize("Processing time: " . $formattedTime, self::THEME_AGENT_STATS) . "\n";
             }
             
-            if (!empty($tokenUsage)) {
+            if ($tokenUsage !== []) {
                 $output .= self::colorize("Token usage: ", self::THEME_AGENT_STATS);
                 
                 $tokenUsageStr = [];
@@ -200,12 +198,12 @@ class ConsoleOutput
         $output .= self::colorize("Goal: ", self::THEME_AGENT_NAME) . self::colorize($goal, self::THEME_AGENT_GOAL) . "\n";
         
         // Backstory if available
-        if (!empty($backstory)) {
+        if ($backstory !== '' && $backstory !== '0') {
             $output .= self::colorize("Backstory: ", self::THEME_AGENT_NAME) . self::colorize($backstory, self::THEME_AGENT_RESPONSE) . "\n";
         }
         
         // Tools if available
-        if (!empty($tools)) {
+        if ($tools !== []) {
             $output .= "\n" . self::colorize("Tools Available:", self::THEME_AGENT_NAME) . "\n";
             
             foreach ($tools as $tool) {
@@ -263,9 +261,7 @@ class ConsoleOutput
             }
         }
         
-        $result .= "\n" . self::colorize("└───────────────────", self::THEME_AGENT_TOOL) . "\n";
-        
-        return $result;
+        return $result . ("\n" . self::colorize("└───────────────────", self::THEME_AGENT_TOOL) . "\n");
     }
     
     /**
@@ -278,9 +274,8 @@ class ConsoleOutput
     {
         $output = self::colorize("\n╭─ Thinking Process ─╮", self::THEME_AGENT_INFO) . "\n";
         $output .= self::colorize($thinking, self::THEME_AGENT_ROLE) . "\n";
-        $output .= self::colorize("╰───────────────────╯", self::THEME_AGENT_INFO) . "\n";
         
-        return $output;
+        return $output . (self::colorize("╰───────────────────╯", self::THEME_AGENT_INFO) . "\n");
     }
     
     /**

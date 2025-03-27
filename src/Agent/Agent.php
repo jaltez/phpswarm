@@ -416,7 +416,7 @@ class Agent implements AgentInterface
         array $metadata = []
     ): AgentResponseInterface {
         if ($this->useColorizedOutput) {
-            $response = new ColorizedAgentResponse(
+            return new ColorizedAgentResponse(
                 $task,
                 $finalAnswer,
                 $trace,
@@ -426,8 +426,6 @@ class Agent implements AgentInterface
                 $tokenUsage,
                 $metadata
             );
-            
-            return $response;
         }
         
         return new AgentResponse(

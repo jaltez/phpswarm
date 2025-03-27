@@ -17,6 +17,12 @@ use PhpSwarm\Tool\Calculator\CalculatorTool;
 use PhpSwarm\Tool\Weather\WeatherTool;
 use PhpSwarm\Tool\WebSearch\WebSearchTool;
 use PhpSwarm\Tool\FileSystem\FileSystemTool;
+use PhpSwarm\Contract\Prompt\PromptInterface;
+use PhpSwarm\Contract\Prompt\PromptManagerInterface;
+use PhpSwarm\Contract\Prompt\PromptTemplateInterface;
+use PhpSwarm\Prompt\BasePrompt;
+use PhpSwarm\Prompt\PromptManager;
+use PhpSwarm\Prompt\PromptTemplate;
 
 /**
  * Factory class for creating PHPSwarm components.
@@ -515,5 +521,119 @@ class PhpSwarmFactory
         string $description = ''
     ): \PhpSwarm\Contract\Workflow\WorkflowStepInterface {
         return new \PhpSwarm\Workflow\FunctionStep($name, $function, $description);
+    }
+
+    /**
+     * Create a prompt manager or retrieve the existing one.
+     *
+     * @param array<string, mixed> $options Additional options to override configuration
+     * @return PromptManagerInterface The prompt manager
+     */
+    public function createPromptManager(array $options = []): PromptManagerInterface
+    {
+        // Check if a prompt manager has already been created
+        if (isset($this->registry['prompt_manager'])) {
+            return $this->registry['prompt_manager'];
+        }
+
+        // Create a new prompt manager
+        $promptManager = new PromptManager();
+
+        // Store in registry
+        $this->registry['prompt_manager'] = $promptManager;
+
+        return $promptManager;
+    }
+
+    /**
+     * Create a prompt template.
+     *
+     * @param string $name The name of the template
+     * @param string $description The description of the template
+     * @param string $content The template content
+     * @param array<string, mixed> $options Additional options
+     * @return PromptTemplateInterface The prompt template
+     */
+    public function createPromptTemplate(
+        string $name,
+        string $description,
+        string $content,
+        array $options = []
+    ): PromptTemplateInterface {
+        // Create the template
+        $template = new PromptTemplate($name, $description, $content);
+
+        // Register with manager if specified
+        if (isset($options['register_with_manager']) && $options['register_with_manager'] === true) {
+            $promptManager = $this->createPromptManager();
+            $promptManager->registerTemplate($template);
+        }
+
+        return $template;
+    }
+
+    /**
+     * Create a prompt.
+     *
+     * @param string $name The name of the prompt
+     * @param string $description The description of the prompt
+     * @param string $template The prompt template
+     * @param array<string, array{description: string, required: bool}> $variables Variable definitions
+     * @param array<string, mixed> $options Additional options
+     * @return PromptInterface The prompt
+     */
+    public function createPrompt(
+        string $name,
+        string $description,
+        string $template,
+        array $variables = [],
+        array $options = []
+    ): PromptInterface {
+        // Create the prompt
+        $prompt = new BasePrompt($name, $description, $template);
+
+        // Add variables
+        foreach ($variables as $varName => $varInfo) {
+            $prompt->addVariable(
+                $varName,
+                $varInfo['description'] ?? "Variable: $varName",
+                $varInfo['required'] ?? true
+            );
+        }
+
+        // Register with manager if specified
+        if (isset($options['register_with_manager']) && $options['register_with_manager'] === true) {
+            $promptManager = $this->createPromptManager();
+            $promptManager->registerPrompt($prompt);
+        }
+
+        return $prompt;
+    }
+
+    /**
+     * Create a prompt from a template.
+     *
+     * @param string $templateName The name of the template
+     * @param string $promptName The name of the prompt
+     * @param string $promptDescription The description of the prompt
+     * @param array<string, mixed> $variables Variables to replace in the template
+     * @param array<string, mixed> $options Additional options
+     * @return PromptInterface|null The prompt or null if template not found
+     */
+    public function createPromptFromTemplate(
+        string $templateName,
+        string $promptName,
+        string $promptDescription,
+        array $variables = [],
+        array $options = []
+    ): ?PromptInterface {
+        $promptManager = $this->createPromptManager();
+        
+        return $promptManager->createPromptFromTemplate(
+            $templateName,
+            $promptName,
+            $promptDescription,
+            $variables
+        );
     }
 }
