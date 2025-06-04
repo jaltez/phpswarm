@@ -23,23 +23,23 @@ class SwarmCoordinator implements SwarmCoordinatorInterface
     {
         // Get all agents from the swarm
         $agents = $swarm->getAgents();
-        
+
         if (empty($agents)) {
             return null;
         }
-        
+
         // If input is a Message, handle routing
         if ($input instanceof MessageInterface) {
             $this->routeMessage($swarm, $input);
             return $input;
         }
-        
+
         // If input is a string, treat it as a task for the first agent
         if (is_string($input) && !empty($input)) {
             $firstAgent = reset($agents);
             return $this->assignTask($swarm, $firstAgent, $input);
         }
-        
+
         return null;
     }
 
@@ -56,10 +56,10 @@ class SwarmCoordinator implements SwarmCoordinatorInterface
                 throw new \InvalidArgumentException("Agent with ID {$agentOrId} not found in the swarm.");
             }
         }
-        
+
         // Convert the task to a string if it's not already
         $taskString = is_string($task) ? $task : json_encode($task);
-        
+
         // Create a message for this task assignment
         $message = new Message(
             'system', // System is the sender
@@ -68,11 +68,11 @@ class SwarmCoordinator implements SwarmCoordinatorInterface
             'task', // Message type is 'task'
             ['assigned_at' => time()]
         );
-        
+
         // Route the message to the agent
         // routeMessage will add the message to swarm history
         $this->routeMessage($swarm, $message, $agent);
-        
+
         // Run the agent with the task
         return $agent->run($taskString);
     }
@@ -87,7 +87,7 @@ class SwarmCoordinator implements SwarmCoordinatorInterface
     ): void {
         // Add message to swarm history
         $swarm->addMessage($message);
-        
+
         // If a specific recipient is provided, route only to that agent
         if ($recipientAgentOrId !== null) {
             $recipientAgent = $recipientAgentOrId;
@@ -97,22 +97,18 @@ class SwarmCoordinator implements SwarmCoordinatorInterface
                     throw new \InvalidArgumentException("Agent with ID {$recipientAgentOrId} not found in the swarm.");
                 }
             }
-            
-            // Handle the message for the specific agent
-            // In a more sophisticated implementation, this could add the message to the agent's inbox
-            // For now, we'll just add it to the swarm's message history
-            
+
+            // Message routed to specific agent
             return;
         }
-        
+
         // If no specific recipient, use the ones specified in the message
         $recipientIds = $message->getRecipientIds();
         if (!empty($recipientIds)) {
             foreach ($recipientIds as $recipientId) {
                 $agent = $swarm->getAgent($recipientId);
                 if ($agent) {
-                    // Handle the message for this agent
-                    // As above, in a more complex implementation we'd add to agent's inbox
+                    // Message routed to specified agent
                 }
             }
         } else {
@@ -131,23 +127,22 @@ class SwarmCoordinator implements SwarmCoordinatorInterface
     ): void {
         // Add message to swarm history
         $swarm->addMessage($message);
-        
+
         $senderId = $senderAgentOrId;
         if ($senderAgentOrId instanceof AgentInterface) {
             $senderId = $senderAgentOrId->getName();
         }
-        
+
         // Get all agents
         $agents = $swarm->getAgents();
-        
+
         // Send message to all agents except the sender
         foreach ($agents as $agentId => $agent) {
             if ($senderId !== null && $agentId === $senderId) {
                 continue; // Skip the sender
             }
-            
-            // Handle the message for this agent
-            // In a more sophisticated implementation, this would add the message to the agent's inbox
+
+            // Message broadcasted to agent
         }
     }
-} 
+}

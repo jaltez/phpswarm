@@ -43,43 +43,59 @@ class MasterWorkerPattern implements SwarmCoordinatorInterface
         if (!$masterAgent) {
             throw new \RuntimeException("Master agent with ID {$this->masterAgentId} not found in swarm.");
         }
-        
+
         // If input is a Message, route it
         if ($input instanceof MessageInterface) {
             $this->routeMessage($swarm, $input);
             return $input;
         }
-        
+
         // If input is a string, treat it as a task for the master agent
         if (is_string($input) && !empty($input)) {
             // Step 1: Master agent analyzes the task
             $masterResponse = $masterAgent->run("Analyze this task and break it down into subtasks: {$input}");
-            
-            // In a real implementation, we would parse the master's response to get the subtasks
-            // For this example, we'll use a simple approach
+
+            // Parse the master's response to get subtasks
             $subtasks = $this->parseSubtasksFromResponse($masterResponse->getFinalAnswer());
-            
+
+            // Handle edge case: no subtasks found
+            if (empty($subtasks)) {
+                // If no subtasks were identified, let the master handle the entire task
+                return $masterAgent->run($input);
+            }
+
             // Step 2: Distribute subtasks to workers
             $workers = $this->getWorkerAgents($swarm);
-            $results = [];
-            
-            foreach ($subtasks as $index => $subtask) {
-                // Simple round-robin distribution
-                $workerIndex = $index % count($workers);
-                $worker = $workers[$workerIndex];
-                
-                // Assign the subtask to the worker
-                $workerResponse = $this->assignTask($swarm, $worker, $subtask);
-                $results[] = $workerResponse->getFinalAnswer();
+
+            // Handle edge case: no worker agents available
+            if (empty($workers)) {
+                // If no workers are available, the master has to do all the work
+                $results = [];
+                foreach ($subtasks as $subtask) {
+                    $response = $masterAgent->run($subtask);
+                    $results[] = $response->getFinalAnswer();
+                }
+            } else {
+                // Distribute subtasks to workers
+                $results = [];
+                foreach ($subtasks as $index => $subtask) {
+                    // Simple round-robin distribution
+                    $workerIndex = $index % count($workers);
+                    $worker = $workers[$workerIndex];
+
+                    // Assign the subtask to the worker
+                    $workerResponse = $this->assignTask($swarm, $worker, $subtask);
+                    $results[] = $workerResponse->getFinalAnswer();
+                }
             }
-            
+
             // Step 3: Master aggregates results
             $aggregationTask = "Aggregate these results into a final answer: " . implode(" | ", $results);
             $finalResponse = $masterAgent->run($aggregationTask);
-            
+
             return $finalResponse;
         }
-        
+
         return null;
     }
 
@@ -96,10 +112,10 @@ class MasterWorkerPattern implements SwarmCoordinatorInterface
                 throw new \InvalidArgumentException("Agent with ID {$agentOrId} not found in swarm.");
             }
         }
-        
+
         // Convert the task to a string if it's not already
         $taskString = is_string($task) ? $task : json_encode($task);
-        
+
         // Create a message for this task assignment
         $message = new Message(
             $this->masterAgentId, // Master is the sender
@@ -108,10 +124,10 @@ class MasterWorkerPattern implements SwarmCoordinatorInterface
             'task',
             ['assigned_at' => time()]
         );
-        
+
         // Add message to swarm history
         $swarm->addMessage($message);
-        
+
         // Run the agent with the task
         return $agent->run($taskString);
     }
@@ -126,21 +142,21 @@ class MasterWorkerPattern implements SwarmCoordinatorInterface
     ): void {
         // Add message to swarm history
         $swarm->addMessage($message);
-        
+
         // Default implementation
         if ($recipientAgentOrId !== null) {
             // Message is for a specific agent
             return;
         }
-        
+
         // In master-worker pattern, all messages go through the master
         $recipientIds = $message->getRecipientIds();
-        
+
         if (empty($recipientIds) || in_array($this->masterAgentId, $recipientIds, true)) {
             // Message for master or broadcast
             return;
         }
-        
+
         // For messages to workers, we'll let the message pass directly
     }
 
@@ -154,7 +170,7 @@ class MasterWorkerPattern implements SwarmCoordinatorInterface
     ): void {
         // Add message to swarm history
         $swarm->addMessage($message);
-        
+
         // In master-worker pattern, broadcasts are controlled by the master
         // Here, we simply record the message in the swarm's history
     }
@@ -170,17 +186,17 @@ class MasterWorkerPattern implements SwarmCoordinatorInterface
     {
         // Very simple parsing - split by numbered list items
         $subtasks = [];
-        
+
         // Look for markdown-style numbered lists like "1. Task one"
         preg_match_all('/\d+\.\s+([^\n]+)/', $response, $matches);
-        
+
         if (!empty($matches[1])) {
             $subtasks = $matches[1];
         } else {
             // Fallback - just split by newlines
             $subtasks = array_filter(array_map('trim', explode("\n", $response)));
         }
-        
+
         return $subtasks;
     }
 
@@ -200,4 +216,4 @@ class MasterWorkerPattern implements SwarmCoordinatorInterface
         }
         return $workers;
     }
-} 
+}
