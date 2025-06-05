@@ -23,6 +23,8 @@ use PhpSwarm\Contract\Prompt\PromptTemplateInterface;
 use PhpSwarm\Prompt\BasePrompt;
 use PhpSwarm\Prompt\PromptManager;
 use PhpSwarm\Prompt\PromptTemplate;
+use PhpSwarm\Contract\Utility\TokenCounterInterface;
+use PhpSwarm\Utility\TokenCounter\TokenCounterFactory;
 
 /**
  * Factory class for creating PHPSwarm components.
@@ -350,8 +352,8 @@ class PhpSwarmFactory
         $builder = $this->createAgentBuilder($options);
 
         $builder->withName($name)
-                ->withRole($role)
-                ->withGoal($goal);
+            ->withRole($role)
+            ->withGoal($goal);
 
         if (isset($options['backstory'])) {
             $builder->withBackstory($options['backstory']);
@@ -628,12 +630,58 @@ class PhpSwarmFactory
         array $options = []
     ): ?PromptInterface {
         $promptManager = $this->createPromptManager();
-        
+
         return $promptManager->createPromptFromTemplate(
             $templateName,
             $promptName,
             $promptDescription,
             $variables
         );
+    }
+
+    /**
+     * Create a token counter for a specific provider.
+     *
+     * @param string $provider The provider name (openai, anthropic, generic)
+     * @return TokenCounterInterface The token counter instance
+     */
+    public function createTokenCounter(string $provider = 'generic'): TokenCounterInterface
+    {
+        $counter = TokenCounterFactory::createForProvider($provider);
+
+        // Store in registry
+        $this->registry["token_counter_{$provider}"] = $counter;
+
+        return $counter;
+    }
+
+    /**
+     * Create a token counter for a specific model.
+     *
+     * @param string $model The model name
+     * @return TokenCounterInterface The token counter instance
+     */
+    public function createTokenCounterForModel(string $model): TokenCounterInterface
+    {
+        $counter = TokenCounterFactory::createForModel($model);
+
+        // Store in registry
+        $this->registry["token_counter_model_{$model}"] = $counter;
+
+        return $counter;
+    }
+
+    /**
+     * Create the best available token counter.
+     *
+     * @return TokenCounterInterface The token counter instance
+     */
+    public function createBestTokenCounter(): TokenCounterInterface
+    {
+        if (!isset($this->registry['token_counter_best'])) {
+            $this->registry['token_counter_best'] = TokenCounterFactory::createBest();
+        }
+
+        return $this->registry['token_counter_best'];
     }
 }
