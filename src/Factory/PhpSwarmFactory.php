@@ -24,7 +24,10 @@ use PhpSwarm\Prompt\BasePrompt;
 use PhpSwarm\Prompt\PromptManager;
 use PhpSwarm\Prompt\PromptTemplate;
 use PhpSwarm\Contract\Utility\TokenCounterInterface;
+use PhpSwarm\Contract\Utility\ValidatorInterface;
 use PhpSwarm\Utility\TokenCounter\TokenCounterFactory;
+use PhpSwarm\Utility\Validation\Validator;
+use PhpSwarm\Utility\Validation\SchemaValidator;
 
 /**
  * Factory class for creating PHPSwarm components.
@@ -683,5 +686,45 @@ class PhpSwarmFactory
         }
 
         return $this->registry['token_counter_best'];
+    }
+
+    /**
+     * Create a validator instance.
+     *
+     * @param array<string, mixed> $options Options for configuring the validator
+     * @return ValidatorInterface The validator instance
+     */
+    public function createValidator(array $options = []): ValidatorInterface
+    {
+        $validator = new Validator();
+
+        // Add any custom rules from options
+        if (isset($options['custom_rules']) && is_array($options['custom_rules'])) {
+            foreach ($options['custom_rules'] as $name => $rule) {
+                if (is_callable($rule)) {
+                    $validator->addRule($name, $rule);
+                }
+            }
+        }
+
+        // Store in registry
+        $this->registry['validator'] = $validator;
+
+        return $validator;
+    }
+
+    /**
+     * Create a schema validator instance.
+     *
+     * @return SchemaValidator The schema validator instance
+     */
+    public function createSchemaValidator(): SchemaValidator
+    {
+        $validator = new SchemaValidator();
+
+        // Store in registry
+        $this->registry['schema_validator'] = $validator;
+
+        return $validator;
     }
 }
