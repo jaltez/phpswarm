@@ -28,6 +28,11 @@ use PhpSwarm\Contract\Utility\ValidatorInterface;
 use PhpSwarm\Utility\TokenCounter\TokenCounterFactory;
 use PhpSwarm\Utility\Validation\Validator;
 use PhpSwarm\Utility\Validation\SchemaValidator;
+use PhpSwarm\Contract\Utility\EventDispatcherInterface;
+use PhpSwarm\Contract\Utility\EventInterface;
+use PhpSwarm\Utility\Event\EventDispatcher;
+use PhpSwarm\Utility\Event\Event;
+use PhpSwarm\Utility\Event\LoggingEventSubscriber;
 
 /**
  * Factory class for creating PHPSwarm components.
@@ -726,5 +731,57 @@ class PhpSwarmFactory
         $this->registry['schema_validator'] = $validator;
 
         return $validator;
+    }
+
+    /**
+     * Create an event dispatcher for managing events and listeners.
+     *
+     * @param array<string, mixed> $options Configuration options
+     */
+    public function createEventDispatcher(array $options = []): EventDispatcherInterface
+    {
+        $dispatcher = new EventDispatcher();
+
+        // Add logging subscriber if enabled
+        $enableLogging = $options['enable_logging'] ?? $this->config->get('events.logging.enabled', true);
+        $logAllEvents = $options['log_all_events'] ?? $this->config->get('events.logging.log_all_events', false);
+
+        if ($enableLogging) {
+            $logger = $this->createLogger();
+            $loggingSubscriber = new LoggingEventSubscriber($logger, $logAllEvents);
+            $dispatcher->addSubscriber($loggingSubscriber);
+        }
+
+        $this->registry['event_dispatcher'] = $dispatcher;
+
+        return $dispatcher;
+    }
+
+    /**
+     * Create a new event.
+     *
+     * @param string $name The event name
+     * @param array<string, mixed> $data The event data
+     * @param string $source The event source
+     * @param bool $stoppable Whether the event can be stopped
+     */
+    public function createEvent(
+        string $name,
+        array $data = [],
+        string $source = 'phpswarm',
+        bool $stoppable = true
+    ): EventInterface {
+        return new Event($name, $data, $source, $stoppable);
+    }
+
+    /**
+     * Create a logging event subscriber.
+     *
+     * @param bool $logAllEvents Whether to log all events or just important ones
+     */
+    public function createLoggingEventSubscriber(bool $logAllEvents = false): LoggingEventSubscriber
+    {
+        $logger = $this->createLogger();
+        return new LoggingEventSubscriber($logger, $logAllEvents);
     }
 }
