@@ -142,6 +142,7 @@ class PhpSwarmFactory
             'array' => $this->createArrayMemory(),
             'redis' => $this->createRedisMemory($options),
             'sqlite' => $this->createSqliteMemory($options),
+            'vector' => $this->createVectorMemory($options),
             default => throw new PhpSwarmException("Unsupported memory provider: $provider"),
         };
     }
@@ -215,6 +216,63 @@ class PhpSwarmFactory
         $this->registry['memory_sqlite'] = $memory;
 
         return $memory;
+    }
+
+    /**
+     * Create a vector memory instance.
+     *
+     * @param array<string, mixed> $options
+     * @throws PhpSwarmException If required dependencies are missing
+     */
+    private function createVectorMemory(array $options = []): \PhpSwarm\Contract\Memory\VectorMemoryInterface
+    {
+        // Create embedding service
+        $embeddingService = $this->createEmbeddingService($options['embedding'] ?? []);
+
+        $memory = new \PhpSwarm\Memory\VectorMemory($embeddingService);
+
+        // Store in registry
+        $this->registry['memory_vector'] = $memory;
+
+        return $memory;
+    }
+
+    /**
+     * Create an embedding service.
+     *
+     * @param array<string, mixed> $options
+     * @throws PhpSwarmException If the embedding service is not supported
+     */
+    public function createEmbeddingService(array $options = []): \PhpSwarm\Contract\Utility\EmbeddingServiceInterface
+    {
+        $provider = $options['provider'] ?? $this->config->get('embedding.provider', 'openai');
+
+        return match ($provider) {
+            'openai' => $this->createOpenAIEmbeddingService($options),
+            default => throw new PhpSwarmException("Unsupported embedding provider: $provider"),
+        };
+    }
+
+    /**
+     * Create an OpenAI embedding service.
+     *
+     * @param array<string, mixed> $options
+     */
+    private function createOpenAIEmbeddingService(array $options = []): \PhpSwarm\Contract\Utility\EmbeddingServiceInterface
+    {
+        $config = [
+            'api_key' => $options['api_key'] ?? $this->config->get('embedding.openai.api_key') ?? $this->config->get('llm.openai.api_key'),
+            'model' => $options['model'] ?? $this->config->get('embedding.openai.model', 'text-embedding-3-small'),
+            'base_url' => $options['base_url'] ?? $this->config->get('embedding.openai.base_url', 'https://api.openai.com/v1'),
+            'timeout' => $options['timeout'] ?? $this->config->get('embedding.timeout', 30),
+        ];
+
+        $service = new \PhpSwarm\Utility\Embedding\OpenAIEmbeddingService($config);
+
+        // Store in registry
+        $this->registry['embedding_openai'] = $service;
+
+        return $service;
     }
 
     /**
