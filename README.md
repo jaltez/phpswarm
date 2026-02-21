@@ -5,6 +5,9 @@
 
 PHPSwarm is a modern PHP framework for building AI-powered applications using autonomous agents. It provides a clean, intuitive API for creating, managing, and deploying AI agents that can perform tasks, make decisions, collaborate with other agents, and use tools to accomplish objectives.
 
+
+![PHPSwarm](assets/cover.png)
+
 ## 🚀 Features
 
 - **Simple, Intuitive API**: Build complex agent systems with minimal code
@@ -148,4 +151,4 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 📜 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. 
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
